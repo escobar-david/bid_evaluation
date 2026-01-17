@@ -1,116 +1,71 @@
-# example_custom.py
+# example_flexible.py
 import pandas as pd
-from criteria import ModularEvaluator, CustomCriterion, MinimumRatioCriterion
-from typing import Dict
+import numpy as np
+from criteria import Evaluator, LinearCriterion, CustomCriterion, MinimumRatioCriterion
 
-# Custom function to evaluate "proximity to reference budget"
-def evaluate_budget_proximity(values: pd.Series, stats: Dict) -> pd.Series:
+# Custom evaluation function
+def evaluate_delivery_time(values: pd.Series, stats: Dict) -> pd.Series:
     """
-    Rewards bids close to reference budget
-    Penalizes those too far below (suspicious) or too far above
+    Evaluates delivery time with penalty for extremes
+    Sweet spot: 30-45 days
     """
-    reference_budget = 50_000_000  # could come from stats or config
+    ideal_min = 30
+    ideal_max = 45
     
-    percentage_difference = abs((values - reference_budget) / reference_budget) * 100
+    scores = pd.Series(100.0, index=values.index)
     
-    # Score decreases with difference
-    scores = 100 - (percentage_difference * 2)
-    scores = scores.clip(lower=0)  # Minimum 0
+    # Penalty for too fast (suspicious)
+    too_fast = values < ideal_min
+    scores[too_fast] = 100 - ((ideal_min - values[too_fast]) * 3)
     
-    return scores
-
-
-# Another custom function: experience with diminishing returns
-def evaluate_experience_diminishing(values: pd.Series, stats: Dict) -> pd.Series:
-    """
-    Experience evaluation with diminishing returns
-    First years count more than later years
-    """
-    # Logarithmic scale: log(years + 1)
-    log_values = np.log(values + 1)
+    # Penalty for too slow
+    too_slow = values > ideal_max
+    scores[too_slow] = 100 - ((values[too_slow] - ideal_max) * 2)
     
-    # Normalize to 0-100
-    max_log = log_values.max()
-    if max_log > 0:
-        scores = (log_values / max_log) * 100
-    else:
-        scores = pd.Series(0, index=values.index)
-    
-    return scores
+    return scores.clip(lower=0)
 
 
 # Bid data
 bids = pd.DataFrame({
     'vendor': ['Company A', 'Company B', 'Company C', 'Company D'],
     'bid_amount': [50_000_000, 45_000_000, 52_000_000, 48_000_000],
-    'experience': [2, 5, 10, 15],  # years
+    'quality_score': [8.5, 9.2, 7.8, 8.9],  # 0-10 scale
+    'delivery_days': [25, 35, 60, 40],  # days
+    'warranty_months': [12, 24, 12, 18],  # months
 })
 
-# Create evaluator
-evaluator = ModularEvaluator()
+# Create evaluator WITHOUT weight normalization
+# (useful if you want exact control over final scores)
+evaluator = Evaluator(normalize_weights=False)
 
-# === TECHNICAL CRITERIA ===
+# Add criteria with explicit weights
+evaluator.add_criterion('bid_amount',
+    MinimumRatioCriterion('price', weight=40))
 
-# Experience with custom diminishing returns function
-evaluator.add_technical_criterion(
-    'experience',
-    CustomCriterion(
-        'experience_diminishing',
-        weight=0.30,
-        evaluation_function=evaluate_experience_diminishing
-    )
-)
+evaluator.add_criterion('quality_score',
+    LinearCriterion('quality', weight=30, higher_is_better=True))
 
-# === ECONOMIC CRITERIA ===
+evaluator.add_criterion('delivery_days',
+    CustomCriterion('delivery', weight=20, 
+                   evaluation_function=evaluate_delivery_time))
 
-# Standard economic evaluation: ratio to minimum
-evaluator.add_economic_criterion(
-    'bid_amount',
-    MinimumRatioCriterion('economic_bid', weight=0.40)
-)
+evaluator.add_criterion('warranty_months',
+    LinearCriterion('warranty', weight=10, higher_is_better=True))
 
-# Custom: proximity to reference budget
-evaluator.add_economic_criterion(
-    'bid_amount',
-    CustomCriterion(
-        'budget_proximity',
-        weight=0.30,
-        evaluation_function=evaluate_budget_proximity
-    )
-)
+print("\n=== CONFIGURATION ===")
+print(evaluator.summary().to_string(index=False))
 
 # Evaluate
 result = evaluator.evaluate(bids)
 
-print("\n=== EVALUATION WITH CUSTOM CRITERIA ===")
-print(result[[
-    'vendor', 'ranking', 'final_score',
-    'technical_score_total', 'economic_score_total'
-]].to_string(index=False))
+print("\n=== RESULTS ===")
+print(result[['vendor', 'ranking', 'final_score']].to_string(index=False))
 
-print("\n=== DETAILED BREAKDOWN ===")
+print("\n=== DETAILS ===")
 detail_cols = [c for c in result.columns if c.startswith('score_')]
 print(result[['vendor'] + detail_cols].to_string(index=False))
 
-print("\n=== CALCULATED STATISTICS ===")
-stats = evaluator.get_statistics()
-for criterion, values in stats.items():
-    print(f"\n{criterion}:")
-    for stat, value in values.items():
-        if isinstance(value, (int, float)):
-            print(f"  {stat}: {value:.2f}")
-        else:
-            print(f"  {stat}: {value}")
-
-# Additional analysis
-print("\n=== WEIGHT DISTRIBUTION ===")
-print(f"Technical weight: {evaluator.technical_weight:.2%}")
-print(f"Economic weight: {evaluator.economic_weight:.2%}")
-
-print("\n=== INDIVIDUAL CRITERION WEIGHTS ===")
-print("Technical:")
-for col, criterion in evaluator.technical_criteria.items():
-    print(f"  {criterion.name}: {criterion.weight:.2%}")
-print("Economic:")
-for col, criterion in evaluator.economic_criteria.items():
-    print(f"  {criterion.name}: {criterion.weight:.2%}")
+# You can also evaluate without details for cleaner output
+print("\n=== CLEAN RESULTS ===")
+clean_result = evaluator.evaluate(bids, include_details=False)
+print(clean_result[['vendor', 'ranking', 'final_score']].to_string(index=False))
