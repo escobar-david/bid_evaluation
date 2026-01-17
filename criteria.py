@@ -172,74 +172,80 @@ class CustomCriterion(CriterionBase):
 
 
 # evaluator.py
-class ModularEvaluator:
-    """Modular evaluation engine"""
+class Evaluator:
+    """Simplified evaluation engine"""
     
-    def __init__(self):
-        self.technical_criteria: Dict[str, CriterionBase] = {}
-        self.economic_criteria: Dict[str, CriterionBase] = {}
-        self.technical_weight: float = 0.0
-        self.economic_weight: float = 0.0
+    def __init__(self, normalize_weights: bool = True):
+        """
+        Args:
+            normalize_weights: If True, automatically normalizes weights to sum to 1.0
+        """
+        self.criteria: Dict[str, CriterionBase] = {}
+        self.normalize_weights = normalize_weights
     
-    def add_technical_criterion(self, column: str, criterion: CriterionBase):
-        """Adds a technical criterion"""
-        self.technical_criteria[column] = criterion
-        self._recalculate_weights()
+    def add_criterion(self, column: str, criterion: CriterionBase):
+        """Adds an evaluation criterion"""
+        self.criteria[column] = criterion
     
-    def add_economic_criterion(self, column: str, criterion: CriterionBase):
-        """Adds an economic criterion"""
-        self.economic_criteria[column] = criterion
-        self._recalculate_weights()
+    def remove_criterion(self, column: str):
+        """Removes a criterion"""
+        if column in self.criteria:
+            del self.criteria[column]
     
-    def _recalculate_weights(self):
-        """Automatically recalculates weights"""
-        tech_weight = sum(c.weight for c in self.technical_criteria.values())
-        eco_weight = sum(c.weight for c in self.economic_criteria.values())
+    def get_total_weight(self) -> float:
+        """Returns the sum of all criterion weights"""
+        return sum(c.weight for c in self.criteria.values())
+    
+    def get_normalized_weights(self) -> Dict[str, float]:
+        """Returns normalized weights (sum = 1.0)"""
+        total = self.get_total_weight()
+        if total == 0:
+            return {}
+        return {name: c.weight / total for name, c in self.criteria.items()}
+    
+    def evaluate(self, bids_df: pd.DataFrame, 
+                 include_details: bool = True) -> pd.DataFrame:
+        """
+        Evaluates all bids
         
-        total = tech_weight + eco_weight
+        Args:
+            bids_df: DataFrame with bid data
+            include_details: If True, includes individual criterion scores
         
-        if total > 0:
-            self.technical_weight = tech_weight / total
-            self.economic_weight = eco_weight / total
-    
-    def evaluate(self, bids_df: pd.DataFrame) -> pd.DataFrame:
-        """Evaluates all bids"""
+        Returns:
+            DataFrame with evaluation results
+        """
         result = bids_df.copy()
         
-        # Evaluate technical criteria
-        technical_scores = []
-        for column, criterion in self.technical_criteria.items():
+        # Evaluate each criterion
+        criterion_scores = []
+        for column, criterion in self.criteria.items():
             score = criterion.evaluate(bids_df[column])
-            result[f'score_{criterion.name}'] = score
-            technical_scores.append(score)
+            
+            if include_details:
+                result[f'score_{criterion.name}'] = score
+            
+            criterion_scores.append(score)
         
-        if technical_scores:
-            result['technical_score_total'] = sum(technical_scores)
+        # Calculate final score
+        if criterion_scores:
+            if self.normalize_weights:
+                # Normalize weights to sum to 1.0
+                total_weight = self.get_total_weight()
+                if total_weight > 0:
+                    result['final_score'] = sum(criterion_scores) / total_weight * 100
+                else:
+                    result['final_score'] = 0
+            else:
+                # Use weights as-is
+                result['final_score'] = sum(criterion_scores)
         else:
-            result['technical_score_total'] = 0
-        
-        # Evaluate economic criteria
-        economic_scores = []
-        for column, criterion in self.economic_criteria.items():
-            score = criterion.evaluate(bids_df[column])
-            result[f'score_{criterion.name}'] = score
-            economic_scores.append(score)
-        
-        if economic_scores:
-            result['economic_score_total'] = sum(economic_scores)
-        else:
-            result['economic_score_total'] = 0
-        
-        # Final score
-        result['final_score'] = (
-            result['technical_score_total'] * self.technical_weight +
-            result['economic_score_total'] * self.economic_weight
-        )
+            result['final_score'] = 0
         
         # Ranking
         result['ranking'] = result['final_score'].rank(
             ascending=False, method='min'
-        )
+        ).astype(int)
         
         return result.sort_values('ranking')
     
@@ -247,9 +253,23 @@ class ModularEvaluator:
         """Gets calculated statistics from all criteria"""
         statistics = {}
         
-        for column, criterion in {**self.technical_criteria, 
-                                   **self.economic_criteria}.items():
+        for column, criterion in self.criteria.items():
             if criterion._statistics:
                 statistics[criterion.name] = criterion._statistics
         
         return statistics
+    
+    def summary(self) -> pd.DataFrame:
+        """Returns a summary of all configured criteria"""
+        data = []
+        for column, criterion in self.criteria.items():
+            data.append({
+                'column': column,
+                'criterion_name': criterion.name,
+                'type': type(criterion).__name__,
+                'weight': criterion.weight,
+                'normalized_weight': criterion.weight / self.get_total_weight() 
+                                    if self.get_total_weight() > 0 else 0
+            })
+        
+        return pd.DataFrame(data)
