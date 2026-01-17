@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 import numpy as np
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Callable
 import yaml
 import json
 
