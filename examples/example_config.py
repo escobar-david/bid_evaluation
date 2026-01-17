@@ -3,7 +3,7 @@
 
 
 import pandas as pd
-from criteria import Evaluator
+from bid_evaluation import Evaluator
 
 bids = pd.DataFrame({
     'vendor': ['Company A', 'Company B', 'Company C'],

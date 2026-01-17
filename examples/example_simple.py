@@ -1,6 +1,6 @@
 # example_simple.py
 import pandas as pd
-from criteria import (
+from bid_evaluation import  (
     Evaluator, LinearCriterion, DirectScoreCriterion,
     ThresholdCriterion, MinimumRatioCriterion
 )

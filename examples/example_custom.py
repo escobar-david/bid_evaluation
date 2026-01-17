@@ -1,7 +1,7 @@
 # example_custom.py
 import pandas as pd
 from typing import Dict
-from criteria import Evaluator, CustomCriterion, MinimumRatioCriterion, LinearCriterion
+from bid_evaluation import Evaluator, CustomCriterion, MinimumRatioCriterion, LinearCriterion
 
 
 # Custom function to evaluate "proximity to reference budget"

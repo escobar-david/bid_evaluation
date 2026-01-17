@@ -5,7 +5,7 @@
 
 import pandas as pd
 import numpy as np
-from criteria import Evaluator
+from bid_evaluation import Evaluator
 
 # Sample bid data
 bids = pd.DataFrame({

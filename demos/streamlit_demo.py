@@ -17,8 +17,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable
 
-from criteria import Evaluator, CustomCriterion
-import custom_templates
+from bid_evaluation import Evaluator, CustomCriterion
+from bid_evaluation import custom_templates
 
 # Safe expression evaluation
 try:
