@@ -1,7 +1,7 @@
-# example_modular.py
+# example_simple.py
 import pandas as pd
 from criteria import (
-    ModularEvaluator, LinearCriterion, DirectScoreCriterion,
+    Evaluator, LinearCriterion, DirectScoreCriterion,
     ThresholdCriterion, StepCriterion, MinimumRatioCriterion
 )
 
@@ -16,65 +16,46 @@ bids = pd.DataFrame({
 })
 
 # Create evaluator
-evaluator = ModularEvaluator()
+evaluator = Evaluator(normalize_weights=True)
 
-# === TECHNICAL CRITERIA ===
+# Add all criteria (no distinction between technical/economic)
+evaluator.add_criterion('experience', 
+    LinearCriterion('experience', weight=0.15, higher_is_better=True))
 
-# Experience: linear, higher is better
-evaluator.add_technical_criterion(
-    'experience',
-    LinearCriterion('experience', weight=0.15, higher_is_better=True)
-)
+evaluator.add_criterion('methodology',
+    DirectScoreCriterion('methodology', weight=0.25, input_scale=100))
 
-# Methodology: direct score from committee
-evaluator.add_technical_criterion(
-    'methodology',
-    DirectScoreCriterion('methodology', weight=0.25, input_scale=100)
-)
-
-# Team: by thresholds
-evaluator.add_technical_criterion(
-    'team',
+evaluator.add_criterion('team',
     ThresholdCriterion('team', weight=0.10, thresholds=[
         (0, 3, 60),
         (3, 5, 80),
         (5, float('inf'), 100)
-    ])
-)
+    ]))
 
-# Certifications: stepped
-evaluator.add_technical_criterion(
-    'certifications',
+evaluator.add_criterion('certifications',
     StepCriterion('certifications', weight=0.10, steps=[
-        (0, 50),
-        (2, 75),
-        (3, 90),
-        (4, 100)
-    ])
-)
+        (0, 50), (2, 75), (3, 90), (4, 100)
+    ]))
 
-# === ECONOMIC CRITERIA ===
+evaluator.add_criterion('bid_amount',
+    MinimumRatioCriterion('economic_bid', weight=0.40))
 
-# Economic bid: ratio to minimum
-evaluator.add_economic_criterion(
-    'bid_amount',
-    MinimumRatioCriterion('economic_bid', weight=0.40)
-)
+# Show configuration summary
+print("\n=== EVALUATION CONFIGURATION ===")
+print(evaluator.summary().to_string(index=False))
+print(f"\nTotal weight: {evaluator.get_total_weight():.2f}")
 
 # Evaluate
 result = evaluator.evaluate(bids)
 
 print("\n=== EVALUATION RESULTS ===")
-print(result[[
-    'vendor', 'ranking', 'final_score',
-    'technical_score_total', 'economic_score_total'
-]].to_string(index=False))
+print(result[['vendor', 'ranking', 'final_score']].to_string(index=False))
 
 print("\n=== DETAILED BREAKDOWN ===")
 detail_cols = [c for c in result.columns if c.startswith('score_')]
 print(result[['vendor'] + detail_cols].to_string(index=False))
 
-print("\n=== CALCULATED STATISTICS ===")
+print("\n=== STATISTICS ===")
 stats = evaluator.get_statistics()
 for criterion, values in stats.items():
     print(f"\n{criterion}:")
