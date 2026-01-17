@@ -2,7 +2,7 @@
 import pandas as pd
 from criteria import (
     Evaluator, LinearCriterion, DirectScoreCriterion,
-    ThresholdCriterion, StepCriterion, MinimumRatioCriterion
+    ThresholdCriterion, MinimumRatioCriterion
 )
 
 # Bid data
@@ -18,13 +18,14 @@ bids = pd.DataFrame({
 # Create evaluator
 evaluator = Evaluator(normalize_weights=True)
 
-# Add all criteria (no distinction between technical/economic)
-evaluator.add_criterion('experience', 
+# Add criteria
+evaluator.add_criterion('experience',
     LinearCriterion('experience', weight=0.15, higher_is_better=True))
 
 evaluator.add_criterion('methodology',
     DirectScoreCriterion('methodology', weight=0.25, input_scale=100))
 
+# Team size by thresholds
 evaluator.add_criterion('team',
     ThresholdCriterion('team', weight=0.10, thresholds=[
         (0, 3, 60),
@@ -32,9 +33,13 @@ evaluator.add_criterion('team',
         (5, float('inf'), 100)
     ]))
 
+# Certifications by thresholds
 evaluator.add_criterion('certifications',
-    StepCriterion('certifications', weight=0.10, steps=[
-        (0, 50), (2, 75), (3, 90), (4, 100)
+    ThresholdCriterion('certifications', weight=0.10, thresholds=[
+        (0, 2, 50),
+        (2, 4, 75),
+        (4, 6, 90),
+        (6, float('inf'), 100)
     ]))
 
 evaluator.add_criterion('bid_amount',
