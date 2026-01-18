@@ -1,6 +1,12 @@
 # Bid Evaluation
 
+![Status](https://img.shields.io/badge/status-alpha-orange)
+![Python](https://img.shields.io/badge/python-3.8+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A flexible Python library for evaluating competitive bids using multiple weighted criteria. Designed to help procurement professionals, project managers, and organizations systematically score and rank vendor bids based on various evaluation factors.
+
+> ⚠️ **Alpha Stage**: This library is in early development. APIs may change. Feedback welcome!
 
 ## Features
 
@@ -10,182 +16,319 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 - **Built-in Statistics**: Automatic calculation of min, max, mean, median, std dev, and quartiles
 - **Pandas Integration**: Works seamlessly with DataFrames for input and output
 
-## Installation
+## 🚀 Quick Start
+
+### Installation
+```bash
+git clone https://github.com/escobar-david/bid-evaluation.git
+cd bid-evaluation
+pip install -e .
+```
+
+Or install directly from GitHub:
+```bash
+pip install git+https://github.com/escobar-david/bid-evaluation.git
+```
 
 ```bash
 pip install pandas numpy PyYAML
 ```
 
-## Quick Start
 
-### Fluent Interface (Recommended)
-
+### Basic Usage
 ```python
-from criteria import Evaluator
+from bid_evaluation import Evaluator
 import pandas as pd
 
+# Load your bids
 bids = pd.DataFrame({
-    'vendor': ['A', 'B', 'C'],
-    'experience': [10, 5, 8],
-    'methodology': [85, 90, 75],
-    'bid_amount': [100000, 95000, 110000]
+    'vendor': ['Company A', 'Company B', 'Company C'],
+    'bid_amount': [50_000_000, 45_000_000, 52_000_000],
+    'experience': [8, 10, 6],
 })
 
+# Configure and evaluate
 result = (Evaluator()
-    .linear('experience', 0.20, higher_is_better=True)
-    .direct('methodology', 0.40)
-    .min_ratio('bid_amount', 0.40)
+    .min_ratio('bid_amount', weight=0.6)
+    .linear('experience', weight=0.4, higher_is_better=True)
     .evaluate(bids))
 
-print(result)
+# View results
+print(result[['vendor', 'ranking', 'final_score']])
+
+# Export to Excel
+result.to_excel('evaluation_results.xlsx')
 ```
 
-### Configuration Dictionary
-
-```python
-from criteria import Evaluator
-
-config = {
-    'experience': {'type': 'linear', 'weight': 0.20, 'higher_is_better': True},
-    'methodology': {'type': 'direct', 'weight': 0.40},
-    'bid_amount': {'type': 'min_ratio', 'weight': 0.40}
-}
-
-evaluator = Evaluator.from_config(config)
-result = evaluator.evaluate(bids)
+**Output:**
+```
+     vendor  ranking  final_score
+1  Company B        1        88.33
+0  Company A        2        66.67
+2  Company C        3        40.00
 ```
 
-## Criterion Types
+## 📚 Examples
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `linear` | Linear normalization (0-100 scale) | Experience, ratings |
-| `threshold` | Score ranges based on value thresholds | Team size, certifications |
-| `direct` | Uses pre-scored values directly | Committee scores |
-| `geometric_mean` | Geometric mean normalization | Economic evaluations |
-| `min_ratio` | Ratio to minimum value | Price comparison |
-| `inverse` | Inversely proportional scoring | Delivery time |
-| `custom` | Custom evaluation function | Complex business logic |
+- **[Simple evaluation](examples/example_simple.py)** - Basic usage with common criteria
+- **[Hybrid approach](examples/example_hybrid.py)** - Config + fluent + custom functions
+- **[Custom criteria](examples/example_custom.py)** - Write your own evaluation logic
 
-## Detailed Usage
+## 🎨 Interactive Demo
 
-### Linear Criterion
-
-Normalizes values to a 0-100 scale. Set `higher_is_better=True` for metrics where larger values are desirable (e.g., experience years).
-
-```python
-evaluator.linear('experience', weight=0.20, higher_is_better=True)
-```
-
-### Threshold Criterion
-
-Assigns scores based on value ranges:
-
-```python
-evaluator.threshold('team_size', weight=0.10, thresholds=[
-    (10, 100),  # >= 10 team members: 100 points
-    (5, 75),    # >= 5 team members: 75 points
-    (3, 50),    # >= 3 team members: 50 points
-    (0, 25)     # < 3 team members: 25 points
-])
-```
-
-### Minimum Ratio Criterion
-
-Scores based on ratio to the minimum value (common for price evaluation):
-
-```python
-evaluator.min_ratio('bid_amount', weight=0.40)
-```
-
-### Custom Criterion
-
-Define your own evaluation logic:
-
-```python
-def budget_proximity(values, stats):
-    target_budget = 100000
-    deviation = abs(values - target_budget) / target_budget
-    return (1 - deviation).clip(0, 1) * 100
-
-evaluator.custom('bid_amount', weight=0.15, func=budget_proximity)
-```
-
-## Output
-
-The `evaluate()` method returns a DataFrame with:
-
-- `final_score`: Weighted sum of all criterion scores
-- `rank`: Overall ranking (1 = best)
-- Individual criterion scores (e.g., `experience_score`, `bid_amount_score`)
-
-```
-   vendor  experience  bid_amount  final_score  rank  experience_score  bid_amount_score
-0       A          10      100000        82.50     1            100.00             95.00
-1       B           5       95000        79.00     2             50.00            100.00
-2       C           8      110000        71.36     3             80.00             86.36
-```
-
-## Statistics
-
-Get detailed statistics for each criterion:
-
-```python
-stats = evaluator.get_statistics(bids)
-for name, criterion_stats in stats.items():
-    print(f"{name}: min={criterion_stats['min']}, max={criterion_stats['max']}")
-```
-
-## Examples
-
-The repository includes several example files:
-
-- `example_simple.py` - Traditional API with `add_criterion()`
-- `example_fluent.py` - Concise fluent interface
-- `example_config.py` - Configuration dictionary approach
-- `example_custom.py` - Custom evaluation functions
-- `example_hybrid.py` - Combined approach with full output
-
-Run any example:
-
+Try it with Streamlit:
 ```bash
-python examples/example_hybrid.py
-```
-
-## Web Interface (Streamlit Demo)
-
-A full-featured web interface is included in the `demos/` directory. The Streamlit app provides:
-
-- **Excel file upload** with multi-sheet support
-- **Interactive criteria configuration** with all criterion types
-- **Formula builder** for custom scoring expressions
-- **Real-time evaluation** with score breakdown charts
-- **Export results** to Excel with statistics and configuration
-- **Save/load configurations** for reuse
-
-### Running the Demo
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the Streamlit app
 streamlit run demos/streamlit_demo.py
 ```
 
-### Screenshot
+**Demo features:**
+- 📤 Export/import evaluation configurations (local files)
+- 📊 Interactive criteria configuration
+- 📥 Download results as CSV or Excel
+- 📈 View detailed statistics
 
-The web interface allows you to:
-1. Upload your bid data (Excel format)
-2. Add evaluation criteria with weights
-3. Configure criterion-specific parameters
-4. Run evaluation and view results
-5. Export results and save configurations
+## 📖 Documentation
 
-## Use Cases
+### Available Criteria
 
-- Procurement bid evaluation for government/enterprise contracts
-- Vendor selection with multiple criteria
-- RFP (Request for Proposal) scoring
-- Project bidding systems
-- Multi-factor decision making with standardized scoring
+#### LinearCriterion
+Simple linear normalization (0-100)
+```python
+evaluator.linear('experience', weight=0.3, higher_is_better=True)
+```
+
+**Parameters:**
+- `column`: Column name to evaluate
+- `weight`: Criterion weight (0-1)
+- `higher_is_better`: If True, higher values score better (default: True)
+
+---
+
+#### ThresholdCriterion
+Assign scores based on value ranges
+```python
+evaluator.threshold('team_size', weight=0.2, thresholds=[
+    (0, 5, 60),           # 0-4 people: 60 points
+    (5, 10, 80),          # 5-9 people: 80 points
+    (10, float('inf'), 100)  # 10+ people: 100 points
+])
+```
+
+**Parameters:**
+- `column`: Column name to evaluate
+- `weight`: Criterion weight
+- `thresholds`: List of `(lower, upper, score)` tuples
+
+---
+
+#### MinimumRatioCriterion
+Score based on ratio to minimum value (common for prices)
+```python
+evaluator.min_ratio('bid_amount', weight=0.5)
+```
+
+**Formula:** `score = (min_value / value) * 100`
+
+Best for: Price evaluation where lower is better
+
+---
+
+#### DirectScoreCriterion
+Use pre-evaluated scores (e.g., from evaluation committee)
+```python
+evaluator.direct('committee_score', weight=0.3, input_scale=10)
+```
+
+**Parameters:**
+- `input_scale`: Original scale of scores (default: 100)
+- Automatically converts to 0-100 scale
+
+---
+
+#### GeometricMeanCriterion
+Evaluation using geometric mean (Chilean procurement standard)
+```python
+evaluator.geometric_mean('bid_amount', weight=0.4)
+```
+
+**Formula:**
+- If `value <= geometric_mean`: 100 points
+- If `value > geometric_mean`: Decreasing score
+
+---
+
+#### CustomCriterion
+Define your own evaluation logic
+```python
+def proximity_to_budget(values, stats):
+    """Penalize bids far from reference budget"""
+    reference = 50_000_000
+    deviation = abs((values - reference) / reference) * 100
+    return (100 - deviation * 2).clip(lower=0)
+
+evaluator.custom('bid_amount', weight=0.2, func=proximity_to_budget)
+```
+
+**Function signature:**
+```python
+def my_function(values: pd.Series, stats: dict) -> pd.Series:
+    """
+    Args:
+        values: Column values to evaluate
+        stats: Auto-calculated statistics (min, max, mean, median, std, q25, q75)
+    
+    Returns:
+        Series of scores (0-100)
+    """
+    return scores
+```
+
+---
+
+### Configuration Methods
+
+#### Fluent Interface (Recommended)
+```python
+result = (Evaluator()
+    .min_ratio('price', 0.4)
+    .linear('experience', 0.3, higher_is_better=True)
+    .direct('quality', 0.3)
+    .evaluate(bids_df))
+```
+
+#### Dictionary Configuration
+```python
+config = {
+    'price': {'type': 'min_ratio', 'weight': 0.4},
+    'experience': {'type': 'linear', 'weight': 0.3, 'higher_is_better': True},
+    'quality': {'type': 'direct', 'weight': 0.3}
+}
+
+evaluator = Evaluator.from_config(config)
+result = evaluator.evaluate(bids_df)
+```
+
+#### YAML Configuration
+```yaml
+# config.yaml
+criteria:
+  price:
+    type: min_ratio
+    weight: 0.4
+  
+  experience:
+    type: linear
+    weight: 0.3
+    higher_is_better: true
+  
+  quality:
+    type: direct
+    weight: 0.3
+```
+```python
+evaluator = Evaluator.from_yaml('config.yaml')
+result = evaluator.evaluate(bids_df)
+```
+
+---
+
+### Working with Results
+```python
+# Evaluate
+result = evaluator.evaluate(bids_df)
+
+# Access results
+print(result[['vendor', 'ranking', 'final_score']])
+
+# Detailed scores
+score_cols = [c for c in result.columns if c.startswith('score_')]
+print(result[['vendor'] + score_cols])
+
+# Get statistics
+stats = evaluator.get_statistics()
+for criterion, values in stats.items():
+    print(f"{criterion}: min={values['min']}, max={values['max']}")
+
+# Export
+result.to_excel('results.xlsx', index=False)
+result.to_csv('results.csv', index=False)
+```
+
+---
+
+### Weight Normalization
+```python
+# Automatic normalization (default)
+evaluator = Evaluator(normalize_weights=True)
+evaluator.linear('price', 0.6)
+evaluator.linear('quality', 0.4)
+# Weights sum to 1.0 automatically
+
+# Manual weights (sum must equal desired total)
+evaluator = Evaluator(normalize_weights=False)
+evaluator.linear('price', 60)
+evaluator.linear('quality', 40)
+# Final score = sum of weighted scores
+```
+
+## 🛣️ Roadmap
+
+Planned features (vote with 👍 on issues):
+
+- [ ] **Admissibility checks** - Required fields, min/max validation, document verification
+- [ ] **Report generation** - PDF/Excel reports with charts and detailed breakdowns
+- [ ] **More criterion types** - Percentile-based, exponential, custom formulas
+- [ ] **Template library** - Pre-configured setups for common procurement types
+- [ ] **Better documentation** - Video tutorials, comprehensive guides
+- [ ] **Unit tests** - Full test coverage
+- [ ] **Performance optimization** - Handle larger datasets efficiently
+
+## 💡 Use Cases
+
+This library is useful for:
+
+- 🏛️ **Government procurement evaluation committees**
+- 🏢 **Companies bidding on public contracts**
+- 💼 **Procurement consultants and advisors**
+- 🔬 **Researchers studying procurement processes**
+- 📊 **Anyone needing objective, transparent bid evaluation**
+
+## 🤝 Contributing
+
+Contributions welcome! This is an early-stage project.
+
+**How to contribute:**
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests if applicable
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+**Ideas for contributions:**
+- New criterion types
+- Documentation improvements
+- Example notebooks
+- Bug fixes
+- Performance improvements
+
+## 📧 Contact
+
+- **Issues**: [GitHub Issues](https://github.com/escobar-david/bid-evaluation/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/escobar-david/bid-evaluation/discussions)
+- **Email**: davesc78@gmail.com
+
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+
+## ⭐ Star History
+
+If you find this useful, give it a star! ⭐
+
+It helps others discover the project and motivates continued development.
+
+---
