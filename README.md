@@ -295,9 +295,6 @@ This library is useful for:
 
 
 ## 📧 Contact
-
-- **Issues**: [GitHub Issues](https://github.com/escobar-david/bid-evaluation/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/escobar-david/bid-evaluation/discussions)
 - **Email**: davesc78@gmail.com
 
 
