@@ -76,6 +76,12 @@ Try it with Streamlit:
 ```bash
 streamlit run demos/streamlit_demo.py
 ```
+IF you have more than 1 python version (streamlit could be asociated with a different python installation):
+```bash
+python -m streamlit run demos/streamlit_demo.py
+```
+
+
 
 **Demo features:**
 - 📤 Export/import evaluation configurations (local files)
