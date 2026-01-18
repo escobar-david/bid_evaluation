@@ -36,6 +36,18 @@ CONFIGS_DIR.mkdir(exist_ok=True)
 CUSTOM_FUNCTIONS_DIR.mkdir(exist_ok=True)
 
 
+def get_sample_data():
+    """Returns sample bid data"""
+    return pd.DataFrame({
+        'vendor': ['Company A', 'Company B', 'Company C', 'Company D', 'Company E'],
+        'bid_amount': [50_000_000, 45_000_000, 52_000_000, 48_000_000, 55_000_000],
+        'experience': [8, 10, 6, 12, 5],
+        'quality_score': [85, 90, 75, 88, 82],
+        'team_size': [4, 5, 3, 6, 2],
+        'certifications': [2, 4, 1, 3, 2]
+    })
+
+
 def init_session_state():
     """Initialize session state variables."""
     if 'criteria_list' not in st.session_state:
@@ -156,6 +168,11 @@ def render_sidebar():
 
         except Exception as e:
             st.sidebar.error(f"Error reading file: {e}")
+
+    if st.button("📊 Try with Sample Data"):
+        df = get_sample_data()
+        st.session_state['df'] = df
+        st.success("Sample data loaded!")
 
     st.sidebar.divider()
 
