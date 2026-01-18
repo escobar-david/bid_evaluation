@@ -21,7 +21,7 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ### Installation
 ```bash
 git clone https://github.com/escobar-david/bid_evaluation.git
-cd bid-evaluation
+cd bid_evaluation
 pip install -e .
 ```
 
