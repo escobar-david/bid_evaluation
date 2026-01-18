@@ -20,7 +20,7 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ## 🚀 Quick Start
 
 ### Try Online (Fastest)
-**[Launch Demo →](https://your-app.streamlit.app)** - Try it in your browser, no setup needed!
+**[Launch Demo →](https://bidevaluation.streamlit.app)** - Try it in your browser, no setup needed!
 
 
 
@@ -80,7 +80,7 @@ result.to_excel('evaluation_results.xlsx')
 
 
 ### Online Demo
-**🔗 [Live Demo](https://your-app.streamlit.app)** - Use it right now in your browser!
+**🔗 [Live Demo](https://bidevaluation.streamlit.app)** - Use it right now in your browser!
 
 
 ### Run Locally
