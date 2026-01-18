@@ -633,6 +633,12 @@ def main():
 
     init_session_state()
 
+    st.info("""
+    ⚠️ **Free Demo** - This is a demonstration of the open-source library.
+    Evaluations are not saved. For production use with cloud storage,
+    history, and team features, contact davesc78@gmail.com
+    """)
+
     st.title("Bid Evaluation System")
     st.caption("Upload bid data, configure evaluation criteria, and analyze results")
 

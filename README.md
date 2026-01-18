@@ -3,6 +3,7 @@
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 ![Python](https://img.shields.io/badge/python-3.8+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://bidevaluation.streamlit.app)
 
 A flexible Python library for evaluating competitive bids using multiple weighted criteria. Designed to help procurement professionals, project managers, and organizations systematically score and rank vendor bids based on various evaluation factors.
 
@@ -17,6 +18,11 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 - **Pandas Integration**: Works seamlessly with DataFrames for input and output
 
 ## 🚀 Quick Start
+
+### Try Online (Fastest)
+**[Launch Demo →](https://your-app.streamlit.app)** - Try it in your browser, no setup needed!
+
+
 
 ### Installation
 ```bash
@@ -72,16 +78,20 @@ result.to_excel('evaluation_results.xlsx')
 
 ## 🎨 Interactive Demo
 
-Try it with Streamlit:
+
+### Online Demo
+**🔗 [Live Demo](https://your-app.streamlit.app)** - Use it right now in your browser!
+
+
+### Run Locally
 ```bash
 streamlit run demos/streamlit_demo.py
 ```
-IF you have more than 1 python version (streamlit could be asociated with a different python installation):
+
+IF you have more than 1 python version (streamlit could be associated with a different python installation):
 ```bash
 python -m streamlit run demos/streamlit_demo.py
 ```
-
-
 
 **Demo features:**
 - 📤 Export/import evaluation configurations (local files)
