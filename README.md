@@ -293,25 +293,6 @@ This library is useful for:
 - 🔬 **Researchers studying procurement processes**
 - 📊 **Anyone needing objective, transparent bid evaluation**
 
-## 🤝 Contributing
-
-Contributions welcome! This is an early-stage project.
-
-**How to contribute:**
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests if applicable
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-**Ideas for contributions:**
-- New criterion types
-- Documentation improvements
-- Example notebooks
-- Bug fixes
-- Performance improvements
 
 ## 📧 Contact
 
