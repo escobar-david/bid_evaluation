@@ -22,16 +22,12 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ```bash
 git clone https://github.com/escobar-david/bid_evaluation.git
 cd bid_evaluation
-pip install -e .
+pip install -r requirements.txt
 ```
 
 Or install directly from GitHub:
 ```bash
 pip install git+https://github.com/escobar-david/bid_evaluation.git
-```
-
-```bash
-pip install pandas numpy PyYAML
 ```
 
 
