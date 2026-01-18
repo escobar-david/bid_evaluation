@@ -666,22 +666,6 @@ def main():
             4. **Export**: Download results as Excel or save your configuration for reuse
             """)
 
-    st.markdown("---")
-    st.markdown("""
-    ### 💼 Need More?
-
-    This is a free demo of the open-source library. 
-
-    For production use with:
-    - ☁️ Cloud storage & history
-    - 👥 Team collaboration  
-    - 📊 Advanced reports
-    - 🔗 System integrations
-    - 📧 Priority support
-
-    📧 **Get in touch:** davesc78@gmail.com
-    """)
-
 
 if __name__ == "__main__":
     main()
