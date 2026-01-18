@@ -148,7 +148,7 @@ evaluator.direct('committee_score', weight=0.3, input_scale=10)
 ---
 
 #### GeometricMeanCriterion
-Evaluation using geometric mean (Chilean procurement standard)
+Evaluation using geometric mean
 ```python
 evaluator.geometric_mean('bid_amount', weight=0.4)
 ```
@@ -302,7 +302,7 @@ This library is useful for:
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License
 
 
 ## ⭐ Star History
