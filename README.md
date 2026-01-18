@@ -149,8 +149,38 @@ The repository includes several example files:
 Run any example:
 
 ```bash
-python example_hybrid.py
+python examples/example_hybrid.py
 ```
+
+## Web Interface (Streamlit Demo)
+
+A full-featured web interface is included in the `demos/` directory. The Streamlit app provides:
+
+- **Excel file upload** with multi-sheet support
+- **Interactive criteria configuration** with all criterion types
+- **Formula builder** for custom scoring expressions
+- **Real-time evaluation** with score breakdown charts
+- **Export results** to Excel with statistics and configuration
+- **Save/load configurations** for reuse
+
+### Running the Demo
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Streamlit app
+streamlit run demos/streamlit_demo.py
+```
+
+### Screenshot
+
+The web interface allows you to:
+1. Upload your bid data (Excel format)
+2. Add evaluation criteria with weights
+3. Configure criterion-specific parameters
+4. Run evaluation and view results
+5. Export results and save configurations
 
 ## Use Cases
 
