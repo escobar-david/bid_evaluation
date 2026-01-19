@@ -417,6 +417,10 @@ def render_criteria_builder():
     with st.expander("Add New Criterion", expanded=len(st.session_state.criteria_list) == 0):
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
+        # Track previous column to detect changes
+        if 'prev_column' not in st.session_state:
+            st.session_state.prev_column = None
+
         col1, col2 = st.columns(2)
         with col1:
             column = st.selectbox(
@@ -425,6 +429,11 @@ def render_criteria_builder():
                 key="new_column",
                 help="Select the data column to evaluate"
             )
+
+            # Update display name when column changes
+            if column != st.session_state.prev_column:
+                st.session_state.new_name = column if column else ""
+                st.session_state.prev_column = column
 
         with col2:
             criterion_type = st.selectbox(
