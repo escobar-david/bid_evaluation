@@ -538,13 +538,13 @@ def render_evaluation():
             width='stretch'
         )
 
-        # Score breakdown chart
-        score_cols = [col for col in results.columns if col.endswith('_score')]
+        # Score breakdown chart (only show actual criterion scores, not raw data or final_score)
+        score_cols = [col for col in results.columns if col.startswith('score_')]
         if score_cols:
             st.subheader("Score Breakdown")
 
             chart_data = results[score_cols].copy()
-            chart_data.columns = [col.replace('_score', '') for col in score_cols]
+            chart_data.columns = [col.replace('score_', '') for col in score_cols]
 
             # Add identifier column if available
             if 'vendor' in results.columns:
