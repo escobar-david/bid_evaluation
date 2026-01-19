@@ -651,7 +651,7 @@ def main():
     init_session_state()
 
     st.info("""
-    ⚠️ **Free Demo** - This is a demonstration of the open-source library.
+    ⚠️ **Free Demo** - This is a demonstration of the open-source library github.com/escobar-david/bid_evaluation. 
     Evaluations are not saved. For production use with cloud storage,
     history, and team features, contact davesc78@gmail.com
     """)
