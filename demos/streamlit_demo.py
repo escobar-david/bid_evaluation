@@ -671,23 +671,23 @@ def main():
     else:
         st.info("Upload an Excel file to get started. Use the file uploader in the sidebar.")
 
-        # Show sample usage
-        with st.expander("How to Use"):
-            st.markdown("""
-            1. **Upload Data**: Use the sidebar to upload an Excel file with your bid data
-            2. **Configure Criteria**: Add evaluation criteria with different types:
-               - **Linear**: Normalize values (higher or lower is better)
-               - **Threshold**: Score ranges based on value bands
-               - **Direct**: Use pre-scored values directly
-               - **Min Ratio**: Score relative to minimum value (common for prices)
-               - **Geometric Mean**: Score relative to geometric mean
-               - **Inverse**: Inversely proportional scoring
-               - **Template**: Pre-built custom patterns (budget proximity, sweet spot, etc.)
-               - **Formula**: Write your own scoring formula
-               - **Custom Python**: Use custom Python functions
-            3. **Run Evaluation**: Click "Run Evaluation" to calculate scores
-            4. **Export**: Download results as Excel or save your configuration for reuse
-            """)
+    # Show sample usage (always visible)
+    with st.expander("How to Use"):
+        st.markdown("""
+        1. **Upload Data**: Use the sidebar to upload an Excel file with your bid data
+        2. **Configure Criteria**: Add evaluation criteria with different types:
+           - **Linear**: Normalize values (higher or lower is better)
+           - **Threshold**: Score ranges based on value bands
+           - **Direct**: Use pre-scored values directly
+           - **Min Ratio**: Score relative to minimum value (common for prices)
+           - **Geometric Mean**: Score relative to geometric mean
+           - **Inverse**: Inversely proportional scoring
+           - **Template**: Pre-built custom patterns (budget proximity, sweet spot, etc.)
+           - **Formula**: Write your own scoring formula
+           - **Custom Python**: Use custom Python functions
+        3. **Run Evaluation**: Click "Run Evaluation" to calculate scores
+        4. **Export**: Download results as Excel or save your configuration for reuse
+        """)
 
 
 if __name__ == "__main__":
