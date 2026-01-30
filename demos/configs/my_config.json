@@ -1,0 +1,41 @@
+{
+  "criteria": [
+    {
+      "column": "experience",
+      "type": "linear",
+      "weight": 1.0,
+      "name": "experience",
+      "higher_is_better": true
+    },
+    {
+      "column": "bid_amount",
+      "type": "linear",
+      "weight": 1.0,
+      "name": "price",
+      "higher_is_better": true
+    },
+    {
+      "column": "methodology_score",
+      "type": "threshold",
+      "weight": 1.0,
+      "name": "mtehodology",
+      "thresholds": [
+        [
+          0.0,
+          10.0,
+          25.0
+        ],
+        [
+          10.0,
+          20.0,
+          50.0
+        ],
+        [
+          20.0,
+          30.0,
+          75.0
+        ]
+      ]
+    }
+  ]
+}
