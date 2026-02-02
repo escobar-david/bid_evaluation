@@ -455,9 +455,11 @@ def render_criteria_builder():
                 key="new_weight"
             )
         with col4:
+            # Initialize new_name in session state if not present
+            if "new_name" not in st.session_state:
+                st.session_state.new_name = column if column else ""
             name = st.text_input(
                 "Display Name",
-                value=column if column else "",
                 key="new_name"
             )
 
