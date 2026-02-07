@@ -47,12 +47,9 @@ Thumbs.db
 
 
 
-.claude
+.claude/
 CLAUDE.md
 demos/streamlit_demo_v2.py
 demos/.streamlit/config.toml
-bid_evaluation/staged.py
-README_STAGED.md
-demos/streamlit_staged_demo.py
-examples/example_staged.py
-tests/test_staged.py
+chart_comparison.html
+chart_test.html
