@@ -9,9 +9,11 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 
 > ⚠️ **Alpha Stage**: This library is in early development. APIs may change. Feedback welcome!
 
+> **🆕 Multi-Stage Evaluation** — Evaluate bids in sequential stages with automatic filtering between them. Eliminate unqualified bids at the technical stage before scoring economics. Supports score thresholds, top-N filters, tie-breaking rules, and weighted stage combinations. [Jump to docs →](#multi-stage-evaluation)
+
 ## Features
 
-- **Multiple Evaluation Strategies**: Linear normalization, threshold-based scoring, geometric mean, ratio-based scoring, and custom functions
+- **Multiple Evaluation Strategies**: Linear normalization, threshold-based scoring, geometric mean, ratio-based scoring, formula expressions, and custom functions
 - **Multi-Stage Evaluation**: Sequential stages with filtering between them — eliminate bids that don't meet technical requirements before scoring economics
 - **Flexible Configuration**: Dictionary, YAML, JSON, or fluent interface
 - **Automatic Weight Normalization**: Optional scaling of weights to sum to 1.0
@@ -70,6 +72,24 @@ result.to_excel('evaluation_results.xlsx')
 0  Company A        2        66.67
 2  Company C        3        40.00
 ```
+
+### Staged Evaluation (Technical → Economic)
+
+```python
+from bid_evaluation import StagedEvaluator
+
+result = (StagedEvaluator()
+    # Stage 1: Technical — bids scoring below 60 are eliminated
+    .add_stage('Technical', filter_type='score_threshold', threshold=60)
+        .linear('experience', 0.4, higher_is_better=True)
+        .direct('quality_score', 0.6)
+    # Stage 2: Economic — only surviving bids are ranked
+    .add_stage('Economic')
+        .min_ratio('bid_amount', 1.0)
+    .evaluate(bids))
+```
+
+Eliminated bids are marked in the `eliminated_at_stage` column and excluded from the final ranking. [Full staged evaluation docs →](#multi-stage-evaluation)
 
 ## 📚 Examples
 
