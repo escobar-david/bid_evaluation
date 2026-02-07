@@ -18,10 +18,11 @@ from .criteria import (
     GeometricMeanCriterion,
     InverseProportionalCriterion,
     CustomCriterion,
-
-    # Evaluator
-    Evaluator,
 )
+
+from .evaluator import Evaluator
+
+from .staged import StagedEvaluator
 
 from . import custom_templates
 
@@ -35,5 +36,6 @@ __all__ = [
     "InverseProportionalCriterion",
     "CustomCriterion",
     "Evaluator",
+    "StagedEvaluator",
     "custom_templates",
 ]

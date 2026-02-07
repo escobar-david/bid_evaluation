@@ -27,9 +27,9 @@ class TestEvaluator:
             .linear('experience', 1.0, higher_is_better=True)
             .evaluate(sample_bids))
 
-        assert 'experience_score' in result.columns
+        assert 'score_experience' in result.columns
         assert 'final_score' in result.columns
-        assert result.loc[result['vendor'] == 'A', 'experience_score'].iloc[0] == 100.0
+        assert result.loc[result['vendor'] == 'A', 'score_experience'].iloc[0] == 100.0
 
     def test_min_ratio_criterion(self, sample_bids):
         """Test min_ratio criterion evaluation."""
@@ -37,9 +37,9 @@ class TestEvaluator:
             .min_ratio('bid_amount', 1.0)
             .evaluate(sample_bids))
 
-        assert 'bid_amount_score' in result.columns
+        assert 'score_bid_amount' in result.columns
         # Vendor B has lowest bid, should get 100
-        assert result.loc[result['vendor'] == 'B', 'bid_amount_score'].iloc[0] == 100.0
+        assert result.loc[result['vendor'] == 'B', 'score_bid_amount'].iloc[0] == 100.0
 
     def test_direct_criterion(self, sample_bids):
         """Test direct score criterion."""
@@ -47,7 +47,7 @@ class TestEvaluator:
             .direct('methodology', 1.0)
             .evaluate(sample_bids))
 
-        assert 'methodology_score' in result.columns
+        assert 'score_methodology' in result.columns
 
     def test_multiple_criteria(self, sample_bids):
         """Test evaluation with multiple criteria."""
