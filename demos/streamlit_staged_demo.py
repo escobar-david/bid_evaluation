@@ -13,8 +13,42 @@ import numpy as np
 import altair as alt
 import json
 from io import BytesIO
+from typing import Callable, Dict
+
+from simpleeval import EvalWithCompoundTypes
 
 from bid_evaluation import StagedEvaluator
+
+# === Formula support ===
+
+def create_formula_function(formula: str, variables: Dict[str, float]) -> Callable:
+    """Create a scoring function from a formula expression using simpleeval."""
+    def formula_func(values: pd.Series, stats: dict) -> pd.Series:
+        results = []
+        evaluator = EvalWithCompoundTypes()
+        evaluator.functions = {
+            "abs": abs, "min": min, "max": max,
+            "sqrt": np.sqrt, "log": np.log, "log10": np.log10,
+            "exp": np.exp,
+            "clip": lambda x, lo, hi: max(lo, min(hi, x)),
+        }
+        for val in values:
+            evaluator.names = {
+                "value": val,
+                "min": stats.get("min", values.min()),
+                "max": stats.get("max", values.max()),
+                "mean": stats.get("mean", values.mean()),
+                "median": stats.get("median", values.median()),
+                "std": stats.get("std", values.std()),
+                **variables,
+            }
+            try:
+                results.append(float(evaluator.eval(formula)))
+            except Exception:
+                results.append(0.0)
+        return pd.Series(results, index=values.index).clip(0, 100)
+    return formula_func
+
 
 # === Color palette (Tableau 10 — colorblind-friendly) ===
 
@@ -42,7 +76,7 @@ FILTER_OPTIONS = ["None", "Score Threshold", "Top N"]
 FILTER_TO_INTERNAL = {"None": None, "Score Threshold": "score_threshold", "Top N": "top_n"}
 FILTER_TO_DISPLAY = {v: k for k, v in FILTER_TO_INTERNAL.items()}
 
-CRITERION_OPTIONS = ["Linear", "Direct Score", "Min Ratio", "Geometric Mean", "Inverse", "Threshold"]
+CRITERION_OPTIONS = ["Linear", "Direct Score", "Min Ratio", "Geometric Mean", "Inverse", "Threshold", "Formula"]
 CTYPE_TO_INTERNAL = {
     "Linear": "linear",
     "Direct Score": "direct",
@@ -50,6 +84,7 @@ CTYPE_TO_INTERNAL = {
     "Geometric Mean": "geometric_mean",
     "Inverse": "inverse",
     "Threshold": "threshold",
+    "Formula": "formula",
 }
 CTYPE_TO_DISPLAY = {v: k for k, v in CTYPE_TO_INTERNAL.items()}
 
@@ -60,6 +95,7 @@ CRITERION_DESCRIPTIONS = {
     "Geometric Mean": "Scores relative to the geometric mean. Values at or below the mean get 100.",
     "Inverse": "Inversely proportional: lower values get higher scores. For costs, durations.",
     "Threshold": "Maps value ranges to fixed scores. For categorical/tiered evaluation.",
+    "Formula": "Write a math expression. Available: value, min, max, mean, median, std, plus custom variables. Functions: abs, sqrt, log, exp, clip.",
 }
 
 
@@ -231,6 +267,9 @@ def load_config_into_state(config):
                 params["input_scale"] = crit_cfg.get("input_scale", 100.0)
             elif ct == "threshold":
                 params["thresholds"] = crit_cfg.get("thresholds", [])
+            elif ct == "formula":
+                params["formula"] = crit_cfg.get("formula", "value")
+                params["formula_variables"] = crit_cfg.get("formula_variables", {})
             add_criterion_to_stage(
                 stage, col, ct, crit_cfg["weight"], crit_cfg.get("name", col), params
             )
@@ -259,6 +298,9 @@ def build_config_dict():
                 cc["input_scale"] = crit.get("input_scale", 100.0)
             elif crit["type"] == "threshold":
                 cc["thresholds"] = crit.get("thresholds", [])
+            elif crit["type"] == "formula":
+                cc["formula"] = crit.get("formula", "value")
+                cc["formula_variables"] = crit.get("formula_variables", {})
             sc["criteria"][crit["column"]] = cc
         config["stages"].append(sc)
     return config
@@ -596,6 +638,11 @@ def _render_criterion_row(stage, crit, color_map):
     if crit["type"] == "linear":
         direction = "higher is better" if crit.get("higher_is_better", True) else "lower is better"
         extra = f" ({direction})"
+    elif crit["type"] == "formula":
+        formula = crit.get("formula", "")
+        if len(formula) > 30:
+            formula = formula[:27] + "..."
+        extra = f" `{formula}`"
 
     # Show display name alongside column if they differ
     if cname != crit["column"]:
@@ -681,6 +728,27 @@ def _render_add_criterion(stage):
                                          key=f"s{sid}_ac_tsc{i}")
                 thresholds.append([lo, hi, sc])
             params["thresholds"] = thresholds
+        elif ctype == "formula":
+            params["formula"] = st.text_input(
+                "Formula",
+                value="100 - abs(value - target) / target * 100",
+                key=f"s{sid}_ac_formula",
+                help="Use: value, min, max, mean, median, std, plus custom variables",
+            )
+            num_vars = st.number_input("Custom variables", min_value=0,
+                                       max_value=5, value=1, key=f"s{sid}_ac_nvars")
+            variables = {}
+            for i in range(int(num_vars)):
+                vc = st.columns(2)
+                with vc[0]:
+                    var_name = st.text_input(f"Name {i+1}", value="target",
+                                             key=f"s{sid}_ac_vn{i}")
+                with vc[1]:
+                    var_value = st.number_input(f"Value {i+1}", value=100000.0,
+                                                key=f"s{sid}_ac_vv{i}")
+                if var_name:
+                    variables[var_name] = var_value
+            params["formula_variables"] = variables
 
         if st.button("Add", key=f"s{sid}_ac_btn", type="primary"):
             add_criterion_to_stage(stage, column, ctype, weight,
@@ -726,6 +794,12 @@ def build_staged_evaluator():
                 staged.inverse(col, w, name=name)
             elif ct == "threshold":
                 staged.threshold(col, w, thresholds=crit.get("thresholds", []), name=name)
+            elif ct == "formula":
+                func = create_formula_function(
+                    crit.get("formula", "value"),
+                    crit.get("formula_variables", {}),
+                )
+                staged.custom(col, w, func, name=name)
 
     return staged
 

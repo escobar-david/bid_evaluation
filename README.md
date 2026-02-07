@@ -12,6 +12,7 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ## Features
 
 - **Multiple Evaluation Strategies**: Linear normalization, threshold-based scoring, geometric mean, ratio-based scoring, and custom functions
+- **Multi-Stage Evaluation**: Sequential stages with filtering between them — eliminate bids that don't meet technical requirements before scoring economics
 - **Flexible Configuration**: Dictionary, YAML, JSON, or fluent interface
 - **Automatic Weight Normalization**: Optional scaling of weights to sum to 1.0
 - **Built-in Statistics**: Automatic calculation of min, max, mean, median, std dev, and quartiles
@@ -75,6 +76,7 @@ result.to_excel('evaluation_results.xlsx')
 - **[Simple evaluation](examples/example_simple.py)** - Basic usage with common criteria
 - **[Hybrid approach](examples/example_hybrid.py)** - Config + fluent + custom functions
 - **[Custom criteria](examples/example_custom.py)** - Write your own evaluation logic
+- **[Staged evaluation](examples/example_staged.py)** - Multi-stage evaluation with filtering
 
 ## 🎨 Interactive Demo
 
@@ -84,20 +86,28 @@ result.to_excel('evaluation_results.xlsx')
 
 
 ### Run Locally
+
+**Single-stage demo** (basic evaluation):
 ```bash
 streamlit run demos/streamlit_demo.py
 ```
 
-IF you have more than 1 python version (streamlit could be associated with a different python installation):
+**Staged evaluation demo** (multi-stage with filtering):
+```bash
+streamlit run demos/streamlit_staged_demo.py
+```
+
+If you have more than 1 python version (streamlit could be associated with a different python installation):
 ```bash
 python -m streamlit run demos/streamlit_demo.py
 ```
 
 **Demo features:**
 - 📤 Export/import evaluation configurations (local files)
-- 📊 Interactive criteria configuration
+- 📊 Interactive criteria configuration with formula support
 - 📥 Download results as CSV or Excel
 - 📈 View detailed statistics
+- 🔄 Multi-stage pipeline with visual score breakdowns (staged demo)
 
 ## 📖 Documentation
 
@@ -244,6 +254,122 @@ result = evaluator.evaluate(bids_df)
 
 ---
 
+## Multi-Stage Evaluation
+
+Real-world procurement often evaluates bids in stages: a technical stage eliminates unqualified bids, then an economic stage ranks the survivors. `StagedEvaluator` supports this pattern.
+
+### Quick Start
+
+```python
+from bid_evaluation import StagedEvaluator
+import pandas as pd
+
+bids = pd.DataFrame({
+    'vendor': ['Alpha', 'Beta', 'Gamma', 'Delta'],
+    'experience': [15, 3, 10, 7],
+    'quality_score': [88, 45, 92, 65],
+    'bid_amount': [120_000, 85_000, 145_000, 95_000],
+})
+
+result = (StagedEvaluator()
+    .add_stage('Technical', filter_type='score_threshold', threshold=60)
+        .linear('experience', 0.4, higher_is_better=True)
+        .direct('quality_score', 0.6)
+    .add_stage('Economic')
+        .min_ratio('bid_amount', 1.0)
+    .evaluate(bids))
+
+print(result[['vendor', 'stage_technical_score', 'eliminated_at_stage', 'final_score', 'ranking']])
+```
+
+### How It Works
+
+1. Bids are evaluated in **sequential stages**, each with its own criteria
+2. After each stage (except the last), a **filter** can eliminate bids:
+   - `score_threshold` — bids must score at or above a minimum
+   - `top_n` — only the top N bids advance (with configurable tie-breaking)
+3. Only surviving bids advance to the next stage
+4. Eliminated bids are marked with the stage where they were removed
+
+### Filter Types
+
+```python
+# Score threshold: bids must score >= 60 to advance
+.add_stage('Technical', filter_type='score_threshold', threshold=60)
+
+# Top N: only the best 5 bids advance
+.add_stage('Shortlist', filter_type='top_n', top_n=5)
+
+# Top N with tie-breaking: exclude tied bids at the cutoff
+.add_stage('Shortlist', filter_type='top_n', top_n=5, on_tie='exclude')
+```
+
+### Final Score Modes
+
+```python
+# Default: ranking based on the last stage's score only
+staged = StagedEvaluator(final_score_mode='last_stage')
+
+# Weighted combination: weighted average of all stage scores
+staged = StagedEvaluator(final_score_mode='weighted_combination')
+```
+
+### Config-Based Setup
+
+```python
+config = {
+    'final_score_mode': 'last_stage',
+    'stages': [
+        {
+            'name': 'Technical',
+            'weight': 0.6,
+            'filter': {'type': 'score_threshold', 'threshold': 60},
+            'criteria': {
+                'experience': {'type': 'linear', 'weight': 0.4, 'higher_is_better': True},
+                'quality_score': {'type': 'direct', 'weight': 0.6}
+            }
+        },
+        {
+            'name': 'Economic',
+            'weight': 0.4,
+            'criteria': {
+                'bid_amount': {'type': 'min_ratio', 'weight': 1.0}
+            }
+        }
+    ]
+}
+
+result = StagedEvaluator.from_config(config).evaluate(bids)
+
+# Also available: from_yaml() and from_json()
+```
+
+### Output Columns
+
+The result DataFrame includes:
+- `stage_{name}_score` — score per stage
+- `stage_{name}_ranking` — ranking within each stage
+- `eliminated_at_stage` — stage name where the bid was eliminated, or `None`
+- `final_score` — overall score (from last stage or weighted combination)
+- `ranking` — final ranking (`NaN` for eliminated bids)
+
+### Inspection
+
+```python
+# Summary of all stages, criteria, and filters
+staged.summary()
+
+# Per-stage statistics (after evaluation)
+staged.get_statistics()
+
+# Detailed stage results (advanced/eliminated indices)
+staged.get_stage_results()
+```
+
+For full documentation, see [README_STAGED.md](README_STAGED.md).
+
+---
+
 ### Working with Results
 ```python
 # Evaluate
@@ -287,12 +413,13 @@ evaluator.linear('quality', 40)
 
 Planned features (vote with 👍 on issues):
 
+- [x] **Multi-stage evaluation** - Sequential stages with filtering between them
+- [x] **Formula criterion** - User-defined math expressions via simpleeval
+- [x] **Unit tests** - Test coverage for core and staged evaluation
 - [ ] **Admissibility checks** - Required fields, min/max validation, document verification
 - [ ] **Report generation** - PDF/Excel reports with charts and detailed breakdowns
-- [ ] **More criterion types** - Percentile-based, exponential, custom formulas
 - [ ] **Template library** - Pre-configured setups for common procurement types
 - [ ] **Better documentation** - Video tutorials, comprehensive guides
-- [ ] **Unit tests** - Full test coverage
 - [ ] **Performance optimization** - Handle larger datasets efficiently
 
 ## 💡 Use Cases
