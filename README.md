@@ -187,6 +187,36 @@ evaluator.direct('committee_score', weight=0.3, input_scale=10)
 
 ---
 
+#### FormulaCriterion
+Score bids using a math expression. Uses `simpleeval` for safe evaluation.
+```python
+evaluator.formula('bid_amount', weight=0.4,
+                  formula='100 - abs(value - target) / target * 100',
+                  variables={'target': 50_000_000})
+```
+
+**Available in formulas:**
+- `value` — the current bid value
+- `min`, `max`, `mean`, `median`, `std` — statistics from all values
+- Custom variables passed via `variables` dict
+- Functions: `abs`, `min`, `max`, `sqrt`, `log`, `log10`, `exp`, `clip(x, lo, hi)`
+
+**Config-based:**
+```python
+config = {
+    'bid_amount': {
+        'type': 'formula',
+        'weight': 0.4,
+        'formula': '100 - abs(value - target) / target * 100',
+        'variables': {'target': 50_000_000}
+    }
+}
+```
+
+Scores are automatically clipped to 0–100. Invalid expressions return 0.
+
+---
+
 #### CustomCriterion
 Define your own evaluation logic
 ```python

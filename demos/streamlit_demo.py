@@ -20,13 +20,6 @@ from typing import Dict, Any, List, Optional, Callable
 from bid_evaluation import Evaluator, CustomCriterion
 from bid_evaluation import custom_templates
 
-# Safe expression evaluation
-try:
-    from simpleeval import simple_eval, EvalWithCompoundTypes
-except ImportError:
-    simple_eval = None
-    EvalWithCompoundTypes = None
-
 # Configuration
 CONFIGS_DIR = Path(__file__).parent / "configs"
 CUSTOM_FUNCTIONS_DIR = Path(__file__).parent / "custom_functions"
@@ -91,51 +84,6 @@ def load_custom_functions() -> Dict[str, Dict[str, Any]]:
             st.warning(f"Error loading {py_file.name}: {e}")
 
     return functions
-
-
-def create_formula_function(formula: str, variables: Dict[str, float]) -> Callable:
-    """Create a scoring function from a formula expression."""
-    if simple_eval is None:
-        raise ImportError("simpleeval library required for formula expressions. Install with: pip install simpleeval")
-
-    def formula_func(values: pd.Series, stats: dict) -> pd.Series:
-        results = []
-        evaluator = EvalWithCompoundTypes()
-
-        # Add safe math functions
-        evaluator.functions = {
-            'abs': abs,
-            'min': min,
-            'max': max,
-            'sqrt': np.sqrt,
-            'log': np.log,
-            'log10': np.log10,
-            'exp': np.exp,
-            'clip': lambda x, lo, hi: max(lo, min(hi, x)),
-        }
-
-        for val in values:
-            # Build context with value and stats
-            context = {
-                'value': val,
-                'min': stats.get('min', values.min()),
-                'max': stats.get('max', values.max()),
-                'mean': stats.get('mean', values.mean()),
-                'median': stats.get('median', values.median()),
-                'std': stats.get('std', values.std()),
-                **variables
-            }
-            evaluator.names = context
-
-            try:
-                result = evaluator.eval(formula)
-                results.append(float(result))
-            except Exception:
-                results.append(0.0)
-
-        return pd.Series(results, index=values.index).clip(0, 100)
-
-    return formula_func
 
 
 def render_sidebar():
@@ -519,8 +467,7 @@ def build_evaluator() -> Evaluator:
         elif ctype == 'formula':
             formula = criterion.get('formula', 'value')
             variables = criterion.get('formula_variables', {})
-            func = create_formula_function(formula, variables)
-            evaluator.custom(column, weight, func)
+            evaluator.formula(column, weight, formula=formula, variables=variables, name=name)
 
         elif ctype == 'custom_python':
             func_name = criterion.get('custom_function')

@@ -13,6 +13,7 @@ from .criteria import (
     ThresholdCriterion,
     DirectScoreCriterion,
     MinimumRatioCriterion,
+    FormulaCriterion,
     CustomCriterion,
 )
 
@@ -63,6 +64,10 @@ class Evaluator:
                 criterion = DirectScoreCriterion(name, weight, **params)
             elif criterion_type == 'min_ratio':
                 criterion = MinimumRatioCriterion(name, weight, **params)
+            elif criterion_type == 'formula':
+                formula_str = params.pop('formula', 'value')
+                variables = params.pop('variables', {})
+                criterion = FormulaCriterion(name, weight, formula=formula_str, variables=variables, **params)
             else:
                 raise ValueError(f"Unknown criterion type: {criterion_type}")
 
@@ -176,6 +181,25 @@ class Evaluator:
         """
         self.add_criterion(column,
                            MinimumRatioCriterion(name or column, weight))
+        return self
+
+    def formula(self, column: str, weight: float, formula: str = 'value',
+                variables: dict = None, name: str = None) -> 'Evaluator':
+        """
+        Add formula criterion (fluent interface)
+
+        Args:
+            column: Column name in DataFrame
+            weight: Criterion weight
+            formula: Math expression string (default: 'value')
+            variables: Dict of custom variables available in the formula
+            name: Display name (default: column name)
+
+        Returns:
+            Self for method chaining
+        """
+        self.add_criterion(column,
+                           FormulaCriterion(name or column, weight, formula=formula, variables=variables))
         return self
 
     def custom(self, column: str, weight: float, func: Callable = None,

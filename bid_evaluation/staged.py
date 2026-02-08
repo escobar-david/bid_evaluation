@@ -242,6 +242,18 @@ class StagedEvaluator:
         self._current_evaluator().min_ratio(column, weight, name)
         return self
 
+    def formula(
+        self,
+        column: str,
+        weight: float,
+        formula: str = 'value',
+        variables: dict = None,
+        name: str = None,
+    ) -> "StagedEvaluator":
+        """Add formula criterion to the current stage."""
+        self._current_evaluator().formula(column, weight, formula, variables, name)
+        return self
+
     def custom(
         self,
         column: str,

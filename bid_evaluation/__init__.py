@@ -15,6 +15,7 @@ from .criteria import (
     ThresholdCriterion,
     DirectScoreCriterion,
     MinimumRatioCriterion,
+    FormulaCriterion,
     CustomCriterion,
 )
 
@@ -30,6 +31,7 @@ __all__ = [
     "ThresholdCriterion",
     "DirectScoreCriterion",
     "MinimumRatioCriterion",
+    "FormulaCriterion",
     "CustomCriterion",
     "Evaluator",
     "StagedEvaluator",

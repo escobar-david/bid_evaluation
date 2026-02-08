@@ -519,3 +519,53 @@ class TestInformational:
                 .direct('quality_score', 1.0))
         with pytest.raises(RuntimeError, match="Call evaluate"):
             staged.get_stage_results()
+
+
+class TestFormulaCriterionInStages:
+    """Tests for formula criterion within staged evaluation."""
+
+    def test_formula_in_stage_fluent(self, bids_5):
+        """Formula criterion in a stage via fluent interface."""
+        result = (StagedEvaluator()
+            .add_stage('Technical', filter_type='score_threshold', threshold=50)
+                .formula('quality_score', 1.0, formula='value')
+            .add_stage('Economic')
+                .min_ratio('bid_amount', 1.0)
+            .evaluate(bids_5))
+
+        assert 'stage_technical_score' in result.columns
+        assert 'stage_economic_score' in result.columns
+        surviving = result[result['eliminated_at_stage'].isna()]
+        assert len(surviving) > 0
+
+    def test_formula_with_variables_in_stage(self, bids_5):
+        """Formula with custom variables in staged evaluation."""
+        result = (StagedEvaluator()
+            .add_stage('Economic')
+                .formula('bid_amount', 1.0,
+                         formula='100 - abs(value - target) / target * 100',
+                         variables={'target': 100000})
+            .evaluate(bids_5))
+
+        assert 'stage_economic_score' in result.columns
+        assert result['final_score'].notna().all()
+
+    def test_formula_via_config_in_stage(self, bids_5):
+        """Formula criterion via config in staged evaluation."""
+        config = {
+            'stages': [
+                {
+                    'name': 'Scoring',
+                    'criteria': {
+                        'quality_score': {
+                            'type': 'formula',
+                            'weight': 1.0,
+                            'formula': 'value',
+                        }
+                    }
+                }
+            ]
+        }
+        result = StagedEvaluator.from_config(config).evaluate(bids_5)
+        assert 'stage_scoring_score' in result.columns
+        assert result['ranking'].notna().all()

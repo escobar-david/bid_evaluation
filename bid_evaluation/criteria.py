@@ -102,6 +102,55 @@ class MinimumRatioCriterion(CriterionBase):
         return scores * self.weight
 
 
+class FormulaCriterion(CriterionBase):
+    """Criterion evaluated using a mathematical formula expression.
+
+    Uses simpleeval to safely evaluate math expressions. The formula can
+    reference the current value, statistics, and custom variables.
+
+    Available in formulas:
+        - value: the current bid value
+        - min, max, mean, median, std: statistics from all values
+        - Custom variables passed via the variables dict
+        - Functions: abs, min, max, sqrt, log, log10, exp, clip
+    """
+
+    def __init__(self, name, weight, formula='value', variables=None, **kwargs):
+        super().__init__(name, weight, **kwargs)
+        self.formula = formula
+        self.variables = variables or {}
+
+    def evaluate(self, values):
+        self._statistics = self.calculate_statistics(values)
+        # Lazy import - simpleeval only needed when FormulaCriterion is used
+        from simpleeval import EvalWithCompoundTypes
+
+        results = []
+        evaluator = EvalWithCompoundTypes()
+        evaluator.functions = {
+            'abs': abs, 'min': min, 'max': max,
+            'sqrt': np.sqrt, 'log': np.log, 'log10': np.log10,
+            'exp': np.exp,
+            'clip': lambda x, lo, hi: max(lo, min(hi, x)),
+        }
+        for val in values:
+            evaluator.names = {
+                'value': val,
+                'min': self._statistics['min'],
+                'max': self._statistics['max'],
+                'mean': self._statistics['mean'],
+                'median': self._statistics['median'],
+                'std': self._statistics['std'],
+                **self.variables,
+            }
+            try:
+                results.append(float(evaluator.eval(self.formula)))
+            except Exception:
+                results.append(0.0)
+        scores = pd.Series(results, index=values.index).clip(0, 100)
+        return scores * self.weight
+
+
 class CustomCriterion(CriterionBase):
     """Allows custom evaluation function"""
 

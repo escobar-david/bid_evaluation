@@ -74,7 +74,7 @@ staged = (StagedEvaluator()
 result = staged.evaluate(bids_df)
 ```
 
-After calling `.add_stage(...)`, all subsequent criterion methods (`.linear()`, `.direct()`, `.min_ratio()`, `.threshold()`, `.custom()`) add criteria to **that** stage. Calling `.add_stage(...)` again starts a new stage.
+After calling `.add_stage(...)`, all subsequent criterion methods (`.linear()`, `.direct()`, `.min_ratio()`, `.threshold()`, `.formula()`, `.custom()`) add criteria to **that** stage. Calling `.add_stage(...)` again starts a new stage.
 
 #### Config Dictionary
 

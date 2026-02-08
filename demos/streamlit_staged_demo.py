@@ -13,41 +13,9 @@ import numpy as np
 import altair as alt
 import json
 from io import BytesIO
-from typing import Callable, Dict
-
-from simpleeval import EvalWithCompoundTypes
+from typing import Dict
 
 from bid_evaluation import StagedEvaluator
-
-# === Formula support ===
-
-def create_formula_function(formula: str, variables: Dict[str, float]) -> Callable:
-    """Create a scoring function from a formula expression using simpleeval."""
-    def formula_func(values: pd.Series, stats: dict) -> pd.Series:
-        results = []
-        evaluator = EvalWithCompoundTypes()
-        evaluator.functions = {
-            "abs": abs, "min": min, "max": max,
-            "sqrt": np.sqrt, "log": np.log, "log10": np.log10,
-            "exp": np.exp,
-            "clip": lambda x, lo, hi: max(lo, min(hi, x)),
-        }
-        for val in values:
-            evaluator.names = {
-                "value": val,
-                "min": stats.get("min", values.min()),
-                "max": stats.get("max", values.max()),
-                "mean": stats.get("mean", values.mean()),
-                "median": stats.get("median", values.median()),
-                "std": stats.get("std", values.std()),
-                **variables,
-            }
-            try:
-                results.append(float(evaluator.eval(formula)))
-            except Exception:
-                results.append(0.0)
-        return pd.Series(results, index=values.index).clip(0, 100)
-    return formula_func
 
 
 # === Color palette (Tableau 10 — colorblind-friendly) ===
@@ -787,11 +755,10 @@ def build_staged_evaluator():
             elif ct == "threshold":
                 staged.threshold(col, w, thresholds=crit.get("thresholds", []), name=name)
             elif ct == "formula":
-                func = create_formula_function(
-                    crit.get("formula", "value"),
-                    crit.get("formula_variables", {}),
-                )
-                staged.custom(col, w, func, name=name)
+                staged.formula(col, w,
+                               formula=crit.get("formula", "value"),
+                               variables=crit.get("formula_variables", {}),
+                               name=name)
 
     return staged
 
