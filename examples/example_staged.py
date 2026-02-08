@@ -26,7 +26,7 @@ result = (StagedEvaluator()
         .linear('delivery_days', 0.4, higher_is_better=False)
     .evaluate(bids))
 
-print(result[['vendor', 'stage_technical_score', 'stage_economic_score',
+print(result[['vendor', 'technical_score', 'economic_score',
               'eliminated_at_stage', 'final_score', 'ranking']])
 print()
 
@@ -54,7 +54,7 @@ config = {
 }
 
 result = StagedEvaluator.from_config(config).evaluate(bids)
-print(result[['vendor', 'stage_technical_score', 'stage_economic_score',
+print(result[['vendor', 'technical_score', 'economic_score',
               'eliminated_at_stage', 'final_score', 'ranking']])
 print()
 
@@ -69,7 +69,7 @@ result = (StagedEvaluator(final_score_mode='weighted_combination')
         .min_ratio('bid_amount', 1.0)
     .evaluate(bids))
 
-print(result[['vendor', 'stage_technical_score', 'stage_economic_score',
+print(result[['vendor', 'technical_score', 'economic_score',
               'eliminated_at_stage', 'final_score', 'ranking']])
 print()
 

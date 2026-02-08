@@ -322,20 +322,21 @@ class StagedEvaluator:
             # Copy stage score columns into main result with stage prefix
             for col in stage_result.columns:
                 if col.startswith("score_"):
-                    prefixed = f"stage_{safe_name}_{col}"
+                    criterion_name = col[len("score_"):]
+                    prefixed = f"{safe_name}_{criterion_name}"
                     result.loc[active_indices, prefixed] = stage_result[col]
                 elif col == "final_score":
-                    result.loc[active_indices, f"stage_{safe_name}_score"] = (
+                    result.loc[active_indices, f"{safe_name}_score"] = (
                         stage_result[col]
                     )
                 elif col == "ranking":
-                    result.loc[active_indices, f"stage_{safe_name}_ranking"] = (
+                    result.loc[active_indices, f"{safe_name}_ranking"] = (
                         stage_result[col]
                     )
 
             # Apply filter (except on the last stage)
             if not is_last and stage.filter is not None:
-                stage_scores = result.loc[active_indices, f"stage_{safe_name}_score"]
+                stage_scores = result.loc[active_indices, f"{safe_name}_score"]
                 advanced, eliminated = self._apply_filter(stage_scores, stage.filter)
                 result.loc[eliminated, "eliminated_at_stage"] = stage.name
                 active_mask.loc[eliminated] = False
@@ -418,7 +419,7 @@ class StagedEvaluator:
         if self.final_score_mode == "last_stage":
             # Use the last stage's score for non-eliminated bids
             last_stage_name = self._safe_name(self._stages[-1].name)
-            score_col = f"stage_{last_stage_name}_score"
+            score_col = f"{last_stage_name}_score"
             if score_col in result.columns:
                 result["final_score"] = result[score_col]
             else:
@@ -433,7 +434,7 @@ class StagedEvaluator:
             result["final_score"] = 0.0
             for stage in self._stages:
                 safe_name = self._safe_name(stage.name)
-                score_col = f"stage_{safe_name}_score"
+                score_col = f"{safe_name}_score"
                 if score_col in result.columns:
                     normalized_weight = stage.weight / total_weight
                     result["final_score"] = result["final_score"] + (
@@ -444,7 +445,7 @@ class StagedEvaluator:
             all_nan = True
             for stage in self._stages:
                 safe_name = self._safe_name(stage.name)
-                score_col = f"stage_{safe_name}_score"
+                score_col = f"{safe_name}_score"
                 if score_col in result.columns:
                     all_nan = False
                     break

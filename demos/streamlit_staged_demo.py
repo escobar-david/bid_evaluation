@@ -336,13 +336,13 @@ def build_criterion_breakdown(result, stage, id_col, color_map):
     so that all contributions sum to the stage's total score per bid.
     """
     safe = _safe_name(stage["name"])
-    score_col = f"stage_{safe}_score"
+    score_col = f"{safe}_score"
 
     # Find per-criterion score columns for this stage
     crit_cols = {}
     for crit in stage["criteria"]:
         cname = crit.get("name", crit["column"])
-        col = f"stage_{safe}_score_{cname}"
+        col = f"{safe}_{cname}"
         if col in result.columns:
             crit_cols[cname] = col
 
@@ -389,7 +389,7 @@ def build_stage_level_breakdown(result, stages, id_col, color_map):
         bid_id = non_elim.loc[idx, id_col] if id_col else str(idx)
         for stage in stages:
             safe = _safe_name(stage["name"])
-            score_col = f"stage_{safe}_score"
+            score_col = f"{safe}_score"
             if score_col in result.columns and pd.notna(result.loc[idx, score_col]):
                 contribution = result.loc[idx, score_col] * (stage["weight"] / total_weight)
             else:
@@ -880,7 +880,7 @@ def _render_combined_tab(result, stages, stage_results, id_col, color_map):
         display_cols.append(id_col)
     for s in stages:
         safe = _safe_name(s["name"])
-        for suffix in (f"stage_{safe}_score", f"stage_{safe}_ranking"):
+        for suffix in (f"{safe}_score", f"{safe}_ranking"):
             if suffix in result.columns:
                 display_cols.append(suffix)
     display_cols.extend(["eliminated_at_stage", "final_score", "ranking"])
@@ -935,8 +935,8 @@ def _render_stage_tab(result, stage, sr, id_col, color_map):
         return
 
     safe = _safe_name(stage["name"])
-    score_col = f"stage_{safe}_score"
-    rank_col = f"stage_{safe}_ranking"
+    score_col = f"{safe}_score"
+    rank_col = f"{safe}_ranking"
 
     # Show which bids were eliminated here
     elim_here = result[result["eliminated_at_stage"] == stage["name"]]
@@ -947,8 +947,9 @@ def _render_stage_tab(result, stage, sr, id_col, color_map):
         )
 
     # Stage detail columns
-    detail_prefix = f"stage_{safe}_score_"
-    detail_cols = [c for c in result.columns if c.startswith(detail_prefix)]
+    detail_prefix = f"{safe}_"
+    known = {f"{safe}_score", f"{safe}_ranking"}
+    detail_cols = [c for c in result.columns if c.startswith(detail_prefix) and c not in known]
     stage_cols = []
     if id_col:
         stage_cols.append(id_col)

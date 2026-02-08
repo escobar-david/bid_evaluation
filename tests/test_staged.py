@@ -51,8 +51,8 @@ class TestStagedEvaluatorFluent:
             .evaluate(bids_5))
 
         # All vendors should have technical stage scores
-        assert 'stage_technical_score' in result.columns
-        assert 'stage_economic_score' in result.columns
+        assert 'technical_score' in result.columns
+        assert 'economic_score' in result.columns
         assert 'eliminated_at_stage' in result.columns
         assert 'final_score' in result.columns
         assert 'ranking' in result.columns
@@ -94,9 +94,9 @@ class TestStagedEvaluatorFluent:
                 .min_ratio('bid_amount', 1.0)
             .evaluate(bids_5))
 
-        assert 'stage_screening_score' in result.columns
-        assert 'stage_technical_score' in result.columns
-        assert 'stage_economic_score' in result.columns
+        assert 'screening_score' in result.columns
+        assert 'technical_score' in result.columns
+        assert 'economic_score' in result.columns
 
         surviving = result[result['eliminated_at_stage'].isna()]
         assert len(surviving) <= 3
@@ -113,8 +113,8 @@ class TestStagedEvaluatorFluent:
         surviving = result[result['eliminated_at_stage'].isna()]
         # Final score should be a blend of technical and economic scores
         for idx in surviving.index:
-            tech = result.loc[idx, 'stage_technical_score']
-            econ = result.loc[idx, 'stage_economic_score']
+            tech = result.loc[idx, 'technical_score']
+            econ = result.loc[idx, 'economic_score']
             expected = tech * 0.6 + econ * 0.4
             assert abs(result.loc[idx, 'final_score'] - expected) < 1e-9
 
@@ -181,8 +181,8 @@ class TestStagedEvaluatorConfig:
             ]
         }
         result = StagedEvaluator.from_config(config).evaluate(bids_5)
-        assert 'stage_technical_score' in result.columns
-        assert 'stage_economic_score' in result.columns
+        assert 'technical_score' in result.columns
+        assert 'economic_score' in result.columns
 
     def test_from_yaml(self, bids_5, tmp_path):
         """Create StagedEvaluator from YAML file."""
@@ -389,7 +389,7 @@ class TestEdgeCases:
             .evaluate(bids_5))
 
         eliminated = result[result['eliminated_at_stage'].notna()]
-        assert eliminated['stage_economic_score'].isna().all()
+        assert eliminated['economic_score'].isna().all()
 
     def test_output_columns_present(self, bids_5):
         """All expected output columns should be present."""
@@ -402,8 +402,8 @@ class TestEdgeCases:
             .evaluate(bids_5))
 
         expected_cols = [
-            'stage_technical_score', 'stage_technical_ranking',
-            'stage_economic_score', 'stage_economic_ranking',
+            'technical_score', 'technical_ranking',
+            'economic_score', 'economic_ranking',
             'eliminated_at_stage', 'final_score', 'ranking',
         ]
         for col in expected_cols:
@@ -419,9 +419,9 @@ class TestEdgeCases:
                 .min_ratio('bid_amount', 1.0)
             .evaluate(bids_5, include_details=True))
 
-        assert 'stage_technical_score_experience' in result.columns
-        assert 'stage_technical_score_quality_score' in result.columns
-        assert 'stage_economic_score_bid_amount' in result.columns
+        assert 'technical_experience' in result.columns
+        assert 'technical_quality_score' in result.columns
+        assert 'economic_bid_amount' in result.columns
 
     def test_no_details(self, bids_5):
         """include_details=False should omit per-criterion columns."""
@@ -433,8 +433,8 @@ class TestEdgeCases:
                 .min_ratio('bid_amount', 1.0)
             .evaluate(bids_5, include_details=False))
 
-        assert 'stage_technical_score_experience' not in result.columns
-        assert 'stage_technical_score' in result.columns
+        assert 'technical_experience' not in result.columns
+        assert 'technical_score' in result.columns
 
     def test_no_stages_raises(self, bids_5):
         """Evaluating without any stages should raise."""
@@ -533,8 +533,8 @@ class TestFormulaCriterionInStages:
                 .min_ratio('bid_amount', 1.0)
             .evaluate(bids_5))
 
-        assert 'stage_technical_score' in result.columns
-        assert 'stage_economic_score' in result.columns
+        assert 'technical_score' in result.columns
+        assert 'economic_score' in result.columns
         surviving = result[result['eliminated_at_stage'].isna()]
         assert len(surviving) > 0
 
@@ -547,7 +547,7 @@ class TestFormulaCriterionInStages:
                          variables={'target': 100000})
             .evaluate(bids_5))
 
-        assert 'stage_economic_score' in result.columns
+        assert 'economic_score' in result.columns
         assert result['final_score'].notna().all()
 
     def test_formula_via_config_in_stage(self, bids_5):
@@ -567,5 +567,5 @@ class TestFormulaCriterionInStages:
             ]
         }
         result = StagedEvaluator.from_config(config).evaluate(bids_5)
-        assert 'stage_scoring_score' in result.columns
+        assert 'scoring_score' in result.columns
         assert result['ranking'].notna().all()

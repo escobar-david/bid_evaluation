@@ -33,7 +33,7 @@ result = (StagedEvaluator()
         .min_ratio('bid_amount', 1.0)
     .evaluate(bids))
 
-print(result[['vendor', 'stage_technical_score', 'stage_economic_score',
+print(result[['vendor', 'technical_score', 'economic_score',
               'eliminated_at_stage', 'final_score', 'ranking']])
 ```
 
@@ -209,9 +209,9 @@ The result DataFrame contains all original columns plus:
 
 | Column | Description |
 |--------|-------------|
-| `stage_{name}_score` | Aggregate score for that stage |
-| `stage_{name}_ranking` | Ranking within that stage |
-| `stage_{name}_score_{criterion}` | Per-criterion score (when `include_details=True`) |
+| `{name}_score` | Aggregate score for that stage |
+| `{name}_ranking` | Ranking within that stage |
+| `{name}_{criterion}` | Per-criterion score (when `include_details=True`) |
 | `eliminated_at_stage` | Name of the stage that eliminated the bid, or `None` |
 | `final_score` | Final score (from last stage or weighted combination) |
 | `ranking` | Final ranking (`NaN` for eliminated bids) |
