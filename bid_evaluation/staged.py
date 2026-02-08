@@ -246,7 +246,7 @@ class StagedEvaluator:
         self,
         column: str,
         weight: float,
-        formula: str = 'value',
+        formula: str = "value",
         variables: dict = None,
         name: str = None,
     ) -> "StagedEvaluator":
@@ -322,17 +322,15 @@ class StagedEvaluator:
             # Copy stage score columns into main result with stage prefix
             for col in stage_result.columns:
                 if col.startswith("score_"):
-                    criterion_name = col[len("score_"):]
+                    criterion_name = col[len("score_") :]
                     prefixed = f"{safe_name}_{criterion_name}"
                     result.loc[active_indices, prefixed] = stage_result[col]
                 elif col == "final_score":
-                    result.loc[active_indices, f"{safe_name}_score"] = (
-                        stage_result[col]
-                    )
+                    result.loc[active_indices, f"{safe_name}_score"] = stage_result[col]
                 elif col == "ranking":
-                    result.loc[active_indices, f"{safe_name}_ranking"] = (
-                        stage_result[col]
-                    )
+                    result.loc[active_indices, f"{safe_name}_ranking"] = stage_result[
+                        col
+                    ]
 
             # Apply filter (except on the last stage)
             if not is_last and stage.filter is not None:
