@@ -13,7 +13,7 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 
 ## Features
 
-- **Multiple Evaluation Strategies**: Linear normalization, threshold-based scoring, geometric mean, ratio-based scoring, formula expressions, and custom functions
+- **Multiple Evaluation Strategies**: Linear normalization, threshold-based scoring, ratio-based scoring, formula expressions, and custom functions
 - **Multi-Stage Evaluation**: Sequential stages with filtering between them — eliminate bids that don't meet technical requirements before scoring economics
 - **Flexible Configuration**: Dictionary, YAML, JSON, or fluent interface
 - **Automatic Weight Normalization**: Optional scaling of weights to sum to 1.0
@@ -184,18 +184,6 @@ evaluator.direct('committee_score', weight=0.3, input_scale=10)
 **Parameters:**
 - `input_scale`: Original scale of scores (default: 100)
 - Automatically converts to 0-100 scale
-
----
-
-#### GeometricMeanCriterion
-Evaluation using geometric mean
-```python
-evaluator.geometric_mean('bid_amount', weight=0.4)
-```
-
-**Formula:**
-- If `value <= geometric_mean`: 100 points
-- If `value > geometric_mean`: Decreasing score
 
 ---
 

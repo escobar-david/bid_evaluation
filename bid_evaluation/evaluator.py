@@ -13,8 +13,6 @@ from .criteria import (
     ThresholdCriterion,
     DirectScoreCriterion,
     MinimumRatioCriterion,
-    GeometricMeanCriterion,
-    InverseProportionalCriterion,
     CustomCriterion,
 )
 
@@ -65,10 +63,6 @@ class Evaluator:
                 criterion = DirectScoreCriterion(name, weight, **params)
             elif criterion_type == 'min_ratio':
                 criterion = MinimumRatioCriterion(name, weight, **params)
-            elif criterion_type == 'geometric_mean':
-                criterion = GeometricMeanCriterion(name, weight, **params)
-            elif criterion_type == 'inverse':
-                criterion = InverseProportionalCriterion(name, weight, **params)
             else:
                 raise ValueError(f"Unknown criterion type: {criterion_type}")
 
@@ -182,38 +176,6 @@ class Evaluator:
         """
         self.add_criterion(column,
                            MinimumRatioCriterion(name or column, weight))
-        return self
-
-    def geometric_mean(self, column: str, weight: float, name: str = None) -> 'Evaluator':
-        """
-        Add geometric mean criterion (fluent interface)
-
-        Args:
-            column: Column name in DataFrame
-            weight: Criterion weight
-            name: Display name (default: column name)
-
-        Returns:
-            Self for method chaining
-        """
-        self.add_criterion(column,
-                           GeometricMeanCriterion(name or column, weight))
-        return self
-
-    def inverse(self, column: str, weight: float, name: str = None) -> 'Evaluator':
-        """
-        Add inverse proportional criterion (fluent interface)
-
-        Args:
-            column: Column name in DataFrame
-            weight: Criterion weight
-            name: Display name (default: column name)
-
-        Returns:
-            Self for method chaining
-        """
-        self.add_criterion(column,
-                           InverseProportionalCriterion(name or column, weight))
         return self
 
     def custom(self, column: str, weight: float, func: Callable = None,

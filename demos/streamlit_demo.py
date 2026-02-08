@@ -211,8 +211,6 @@ def render_sidebar():
            - **Threshold**: Score ranges based on value bands
            - **Direct**: Use pre-scored values directly
            - **Min Ratio**: Score relative to minimum value
-           - **Geometric Mean**: Score relative to geometric mean
-           - **Inverse**: Inversely proportional scoring
            - **Template**: Pre-built patterns (budget proximity, etc.)
            - **Formula**: Write your own scoring formula
            - **Custom Python**: Use custom Python functions
@@ -438,7 +436,7 @@ def render_criteria_builder():
         with col2:
             criterion_type = st.selectbox(
                 "Type",
-                ["linear", "threshold", "direct", "min_ratio", "geometric_mean", "inverse",
+                ["linear", "threshold", "direct", "min_ratio",
                  "template", "formula", "custom_python"],
                 key="new_type",
                 help="Select the evaluation method"
@@ -490,7 +488,7 @@ def build_evaluator() -> Evaluator:
         weight = criterion['weight']
         name = criterion.get('name', column)
 
-        if ctype in ['linear', 'threshold', 'direct', 'min_ratio', 'geometric_mean', 'inverse']:
+        if ctype in ['linear', 'threshold', 'direct', 'min_ratio']:
             # Standard criteria - build config for from_config
             config = {'type': ctype, 'weight': weight, 'name': name}
 

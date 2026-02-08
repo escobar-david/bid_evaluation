@@ -20,17 +20,21 @@ class StageFilter:
     type: str  # 'score_threshold' or 'top_n'
     threshold: Optional[float] = None  # for score_threshold
     top_n: Optional[int] = None  # for top_n
-    on_tie: str = 'include'  # 'include' or 'exclude'
+    on_tie: str = "include"  # 'include' or 'exclude'
 
     def __post_init__(self):
-        if self.type not in ('score_threshold', 'top_n'):
-            raise ValueError(f"Unknown filter type: {self.type}. Use 'score_threshold' or 'top_n'.")
-        if self.type == 'score_threshold' and self.threshold is None:
+        if self.type not in ("score_threshold", "top_n"):
+            raise ValueError(
+                f"Unknown filter type: {self.type}. Use 'score_threshold' or 'top_n'."
+            )
+        if self.type == "score_threshold" and self.threshold is None:
             raise ValueError("threshold is required for score_threshold filter.")
-        if self.type == 'top_n' and self.top_n is None:
+        if self.type == "top_n" and self.top_n is None:
             raise ValueError("top_n is required for top_n filter.")
-        if self.on_tie not in ('include', 'exclude'):
-            raise ValueError(f"on_tie must be 'include' or 'exclude', got: {self.on_tie}")
+        if self.on_tie not in ("include", "exclude"):
+            raise ValueError(
+                f"on_tie must be 'include' or 'exclude', got: {self.on_tie}"
+            )
 
 
 @dataclass
@@ -61,14 +65,14 @@ class StagedEvaluator:
     advance to the next stage.
     """
 
-    def __init__(self, final_score_mode: str = 'last_stage'):
+    def __init__(self, final_score_mode: str = "last_stage"):
         """
         Args:
             final_score_mode: How to compute the final score.
                 'last_stage' — use the last stage's score (default).
                 'weighted_combination' — weighted average of all stage scores.
         """
-        if final_score_mode not in ('last_stage', 'weighted_combination'):
+        if final_score_mode not in ("last_stage", "weighted_combination"):
             raise ValueError(
                 f"final_score_mode must be 'last_stage' or 'weighted_combination', got: {final_score_mode}"
             )
@@ -80,7 +84,7 @@ class StagedEvaluator:
     # === Factory methods ===
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any]) -> 'StagedEvaluator':
+    def from_config(cls, config: Dict[str, Any]) -> "StagedEvaluator":
         """Create a StagedEvaluator from a configuration dictionary.
 
         Args:
@@ -107,56 +111,64 @@ class StagedEvaluator:
                 ]
             }
         """
-        final_score_mode = config.get('final_score_mode', 'last_stage')
+        final_score_mode = config.get("final_score_mode", "last_stage")
         staged = cls(final_score_mode=final_score_mode)
 
-        for stage_cfg in config.get('stages', []):
-            name = stage_cfg['name']
-            weight = stage_cfg.get('weight', 1.0)
+        for stage_cfg in config.get("stages", []):
+            name = stage_cfg["name"]
+            weight = stage_cfg.get("weight", 1.0)
 
             # Build filter
             stage_filter = None
-            if 'filter' in stage_cfg:
-                f = stage_cfg['filter']
+            if "filter" in stage_cfg:
+                f = stage_cfg["filter"]
                 stage_filter = StageFilter(
-                    type=f['type'],
-                    threshold=f.get('threshold'),
-                    top_n=f.get('top_n'),
-                    on_tie=f.get('on_tie', 'include'),
+                    type=f["type"],
+                    threshold=f.get("threshold"),
+                    top_n=f.get("top_n"),
+                    on_tie=f.get("on_tie", "include"),
                 )
 
             # Build evaluator from criteria config
-            criteria_config = stage_cfg.get('criteria', {})
+            criteria_config = stage_cfg.get("criteria", {})
             evaluator = Evaluator.from_config(criteria_config)
 
-            staged._stages.append(StageDefinition(
-                name=name,
-                evaluator=evaluator,
-                filter=stage_filter,
-                weight=weight,
-            ))
+            staged._stages.append(
+                StageDefinition(
+                    name=name,
+                    evaluator=evaluator,
+                    filter=stage_filter,
+                    weight=weight,
+                )
+            )
 
         return staged
 
     @classmethod
-    def from_yaml(cls, filepath: str) -> 'StagedEvaluator':
+    def from_yaml(cls, filepath: str) -> "StagedEvaluator":
         """Create a StagedEvaluator from a YAML file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = yaml.safe_load(f)
         return cls.from_config(data)
 
     @classmethod
-    def from_json(cls, filepath: str) -> 'StagedEvaluator':
+    def from_json(cls, filepath: str) -> "StagedEvaluator":
         """Create a StagedEvaluator from a JSON file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
         return cls.from_config(data)
 
     # === Fluent interface ===
 
-    def add_stage(self, name: str, filter_type: Optional[str] = None,
-                  threshold: Optional[float] = None, top_n: Optional[int] = None,
-                  on_tie: str = 'include', weight: float = 1.0) -> 'StagedEvaluator':
+    def add_stage(
+        self,
+        name: str,
+        filter_type: Optional[str] = None,
+        threshold: Optional[float] = None,
+        top_n: Optional[int] = None,
+        on_tie: str = "include",
+        weight: float = 1.0,
+    ) -> "StagedEvaluator":
         """Add a new evaluation stage.
 
         After calling add_stage, subsequent criterion calls (linear, direct, etc.)
@@ -182,12 +194,14 @@ class StagedEvaluator:
                 on_tie=on_tie,
             )
 
-        self._stages.append(StageDefinition(
-            name=name,
-            evaluator=Evaluator(),
-            filter=stage_filter,
-            weight=weight,
-        ))
+        self._stages.append(
+            StageDefinition(
+                name=name,
+                evaluator=Evaluator(),
+                filter=stage_filter,
+                weight=weight,
+            )
+        )
         return self
 
     def _current_evaluator(self) -> Evaluator:
@@ -196,49 +210,55 @@ class StagedEvaluator:
             raise RuntimeError("No stages defined. Call add_stage() first.")
         return self._stages[-1].evaluator
 
-    def linear(self, column: str, weight: float, name: str = None,
-               higher_is_better: bool = True) -> 'StagedEvaluator':
+    def linear(
+        self,
+        column: str,
+        weight: float,
+        name: str = None,
+        higher_is_better: bool = True,
+    ) -> "StagedEvaluator":
         """Add linear criterion to the current stage."""
         self._current_evaluator().linear(column, weight, name, higher_is_better)
         return self
 
-    def threshold(self, column: str, weight: float, thresholds: list,
-                  name: str = None) -> 'StagedEvaluator':
+    def threshold(
+        self, column: str, weight: float, thresholds: list, name: str = None
+    ) -> "StagedEvaluator":
         """Add threshold criterion to the current stage."""
         self._current_evaluator().threshold(column, weight, thresholds, name)
         return self
 
-    def direct(self, column: str, weight: float, name: str = None,
-               input_scale: float = 100) -> 'StagedEvaluator':
+    def direct(
+        self, column: str, weight: float, name: str = None, input_scale: float = 100
+    ) -> "StagedEvaluator":
         """Add direct score criterion to the current stage."""
         self._current_evaluator().direct(column, weight, name, input_scale)
         return self
 
-    def min_ratio(self, column: str, weight: float, name: str = None) -> 'StagedEvaluator':
+    def min_ratio(
+        self, column: str, weight: float, name: str = None
+    ) -> "StagedEvaluator":
         """Add minimum ratio criterion to the current stage."""
         self._current_evaluator().min_ratio(column, weight, name)
         return self
 
-    def geometric_mean(self, column: str, weight: float, name: str = None) -> 'StagedEvaluator':
-        """Add geometric mean criterion to the current stage."""
-        self._current_evaluator().geometric_mean(column, weight, name)
-        return self
-
-    def inverse(self, column: str, weight: float, name: str = None) -> 'StagedEvaluator':
-        """Add inverse proportional criterion to the current stage."""
-        self._current_evaluator().inverse(column, weight, name)
-        return self
-
-    def custom(self, column: str, weight: float, func: Callable = None,
-               name: str = None, **kwargs) -> 'StagedEvaluator':
+    def custom(
+        self,
+        column: str,
+        weight: float,
+        func: Callable = None,
+        name: str = None,
+        **kwargs,
+    ) -> "StagedEvaluator":
         """Add custom criterion to the current stage."""
         self._current_evaluator().custom(column, weight, func, name, **kwargs)
         return self
 
     # === Evaluation ===
 
-    def evaluate(self, bids_df: pd.DataFrame,
-                 include_details: bool = True) -> pd.DataFrame:
+    def evaluate(
+        self, bids_df: pd.DataFrame, include_details: bool = True
+    ) -> pd.DataFrame:
         """Evaluate bids through all stages sequentially.
 
         Args:
@@ -256,12 +276,12 @@ class StagedEvaluator:
             return self._empty_result(bids_df)
 
         result = bids_df.copy()
-        result['eliminated_at_stage'] = None
+        result["eliminated_at_stage"] = None
         active_mask = pd.Series(True, index=result.index)
         self._stage_results = []
 
         for i, stage in enumerate(self._stages):
-            is_last = (i == len(self._stages) - 1)
+            is_last = i == len(self._stages) - 1
             safe_name = self._safe_name(stage.name)
             active_indices = result.index[active_mask]
 
@@ -271,65 +291,73 @@ class StagedEvaluator:
                     f"All bids were eliminated before stage '{stage.name}'. "
                     f"Skipping this and subsequent stages."
                 )
-                self._stage_results.append(StageResult(
-                    name=stage.name,
-                    result_df=pd.DataFrame(),
-                    advanced_indices=pd.Index([]),
-                    eliminated_indices=pd.Index([]),
-                ))
+                self._stage_results.append(
+                    StageResult(
+                        name=stage.name,
+                        result_df=pd.DataFrame(),
+                        advanced_indices=pd.Index([]),
+                        eliminated_indices=pd.Index([]),
+                    )
+                )
                 continue
 
             # Evaluate active bids using this stage's evaluator
             active_bids = bids_df.loc[active_indices]
-            stage_result = stage.evaluator.evaluate(active_bids, include_details=include_details)
+            stage_result = stage.evaluator.evaluate(
+                active_bids, include_details=include_details
+            )
 
             # Copy stage score columns into main result with stage prefix
             for col in stage_result.columns:
-                if col.startswith('score_'):
+                if col.startswith("score_"):
                     prefixed = f"stage_{safe_name}_{col}"
                     result.loc[active_indices, prefixed] = stage_result[col]
-                elif col == 'final_score':
-                    result.loc[active_indices, f"stage_{safe_name}_score"] = stage_result[col]
-                elif col == 'ranking':
-                    result.loc[active_indices, f"stage_{safe_name}_ranking"] = stage_result[col]
+                elif col == "final_score":
+                    result.loc[active_indices, f"stage_{safe_name}_score"] = (
+                        stage_result[col]
+                    )
+                elif col == "ranking":
+                    result.loc[active_indices, f"stage_{safe_name}_ranking"] = (
+                        stage_result[col]
+                    )
 
             # Apply filter (except on the last stage)
             if not is_last and stage.filter is not None:
                 stage_scores = result.loc[active_indices, f"stage_{safe_name}_score"]
-                advanced, eliminated = self._apply_filter(
-                    stage_scores, stage.filter
-                )
-                result.loc[eliminated, 'eliminated_at_stage'] = stage.name
+                advanced, eliminated = self._apply_filter(stage_scores, stage.filter)
+                result.loc[eliminated, "eliminated_at_stage"] = stage.name
                 active_mask.loc[eliminated] = False
             else:
                 advanced = active_indices
                 eliminated = pd.Index([])
 
-            self._stage_results.append(StageResult(
-                name=stage.name,
-                result_df=stage_result,
-                advanced_indices=advanced,
-                eliminated_indices=eliminated,
-            ))
+            self._stage_results.append(
+                StageResult(
+                    name=stage.name,
+                    result_df=stage_result,
+                    advanced_indices=advanced,
+                    eliminated_indices=eliminated,
+                )
+            )
 
         # Compute final_score
         result = self._compute_final_score(result)
 
         # Compute ranking — only for non-eliminated bids
-        non_eliminated = result['eliminated_at_stage'].isna()
-        result['ranking'] = np.nan
+        non_eliminated = result["eliminated_at_stage"].isna()
+        result["ranking"] = np.nan
         if non_eliminated.any():
-            result.loc[non_eliminated, 'ranking'] = (
-                result.loc[non_eliminated, 'final_score']
-                .rank(ascending=False, method='min')
+            result.loc[non_eliminated, "ranking"] = (
+                result.loc[non_eliminated, "final_score"]
+                .rank(ascending=False, method="min")
                 .astype(int)
             )
 
         # Sort: ranked bids first (by ranking), then eliminated bids
         result = result.sort_values(
-            by=['ranking', 'final_score'],
+            by=["ranking", "final_score"],
             ascending=[True, False],
-            na_position='last',
+            na_position="last",
         )
 
         self._evaluated = True
@@ -341,15 +369,15 @@ class StagedEvaluator:
         Returns:
             (advanced_indices, eliminated_indices)
         """
-        if stage_filter.type == 'score_threshold':
+        if stage_filter.type == "score_threshold":
             advanced = scores.index[scores >= stage_filter.threshold]
             eliminated = scores.index[scores < stage_filter.threshold]
 
-        elif stage_filter.type == 'top_n':
+        elif stage_filter.type == "top_n":
             n = stage_filter.top_n
-            rankings = scores.rank(ascending=False, method='min')
+            rankings = scores.rank(ascending=False, method="min")
 
-            if stage_filter.on_tie == 'include':
+            if stage_filter.on_tie == "include":
                 # Include all bids with rank <= n
                 advanced = scores.index[rankings <= n]
             else:
@@ -375,28 +403,28 @@ class StagedEvaluator:
 
     def _compute_final_score(self, result: pd.DataFrame) -> pd.DataFrame:
         """Compute the final_score column based on the configured mode."""
-        if self.final_score_mode == 'last_stage':
+        if self.final_score_mode == "last_stage":
             # Use the last stage's score for non-eliminated bids
             last_stage_name = self._safe_name(self._stages[-1].name)
             score_col = f"stage_{last_stage_name}_score"
             if score_col in result.columns:
-                result['final_score'] = result[score_col]
+                result["final_score"] = result[score_col]
             else:
-                result['final_score'] = np.nan
+                result["final_score"] = np.nan
 
-        elif self.final_score_mode == 'weighted_combination':
+        elif self.final_score_mode == "weighted_combination":
             total_weight = sum(s.weight for s in self._stages)
             if total_weight == 0:
-                result['final_score'] = np.nan
+                result["final_score"] = np.nan
                 return result
 
-            result['final_score'] = 0.0
+            result["final_score"] = 0.0
             for stage in self._stages:
                 safe_name = self._safe_name(stage.name)
                 score_col = f"stage_{safe_name}_score"
                 if score_col in result.columns:
                     normalized_weight = stage.weight / total_weight
-                    result['final_score'] = result['final_score'] + (
+                    result["final_score"] = result["final_score"] + (
                         result[score_col].fillna(0) * normalized_weight
                     )
 
@@ -409,20 +437,20 @@ class StagedEvaluator:
                     all_nan = False
                     break
             if all_nan:
-                result['final_score'] = np.nan
+                result["final_score"] = np.nan
 
         return result
 
     def _safe_name(self, name: str) -> str:
         """Convert a stage name to a safe column-name fragment."""
-        return name.lower().replace(' ', '_').replace('-', '_')
+        return name.lower().replace(" ", "_").replace("-", "_")
 
     def _empty_result(self, bids_df: pd.DataFrame) -> pd.DataFrame:
         """Return an empty DataFrame with expected columns."""
         result = bids_df.copy()
-        result['eliminated_at_stage'] = pd.Series(dtype='object')
-        result['final_score'] = pd.Series(dtype='float64')
-        result['ranking'] = pd.Series(dtype='float64')
+        result["eliminated_at_stage"] = pd.Series(dtype="object")
+        result["final_score"] = pd.Series(dtype="float64")
+        result["ranking"] = pd.Series(dtype="float64")
         return result
 
     # === Informational methods ===
@@ -432,23 +460,27 @@ class StagedEvaluator:
         rows = []
         for stage in self._stages:
             safe_name = self._safe_name(stage.name)
-            filter_desc = 'None'
+            filter_desc = "None"
             if stage.filter is not None:
-                if stage.filter.type == 'score_threshold':
+                if stage.filter.type == "score_threshold":
                     filter_desc = f"score >= {stage.filter.threshold}"
-                elif stage.filter.type == 'top_n':
-                    filter_desc = f"top {stage.filter.top_n} (on_tie={stage.filter.on_tie})"
+                elif stage.filter.type == "top_n":
+                    filter_desc = (
+                        f"top {stage.filter.top_n} (on_tie={stage.filter.on_tie})"
+                    )
 
             for column, criterion in stage.evaluator.criteria.items():
-                rows.append({
-                    'stage': stage.name,
-                    'stage_weight': stage.weight,
-                    'filter': filter_desc,
-                    'column': column,
-                    'criterion_name': criterion.name,
-                    'criterion_type': type(criterion).__name__,
-                    'criterion_weight': criterion.weight,
-                })
+                rows.append(
+                    {
+                        "stage": stage.name,
+                        "stage_weight": stage.weight,
+                        "filter": filter_desc,
+                        "column": column,
+                        "criterion_name": criterion.name,
+                        "criterion_type": type(criterion).__name__,
+                        "criterion_weight": criterion.weight,
+                    }
+                )
 
         return pd.DataFrame(rows)
 

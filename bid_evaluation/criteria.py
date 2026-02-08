@@ -90,29 +90,6 @@ class DirectScoreCriterion(CriterionBase):
         return values * self.weight
 
 
-class GeometricMeanCriterion(CriterionBase):
-    """Evaluation using geometric mean (common for economic bids)"""
-
-    def evaluate(self, values: pd.Series) -> pd.Series:
-        self._statistics = self.calculate_statistics(values)
-
-        # Calculate geometric mean
-        positive_values = values[values > 0]
-        geometric_mean = np.exp(np.log(positive_values).mean())
-        self._statistics['geometric_mean'] = geometric_mean
-
-        # Apply formula
-        scores = np.where(
-            values <= geometric_mean,
-            100,
-            100 - ((values - geometric_mean) / geometric_mean) * 100
-        )
-
-        scores = np.maximum(scores, 0)  # Don't allow negatives
-
-        return pd.Series(scores, index=values.index) * self.weight
-
-
 class MinimumRatioCriterion(CriterionBase):
     """Score = (minimum_value / value) * 100"""
 
@@ -121,18 +98,6 @@ class MinimumRatioCriterion(CriterionBase):
 
         min_value = values.min()
         scores = (min_value / values) * 100
-
-        return scores * self.weight
-
-
-class InverseProportionalCriterion(CriterionBase):
-    """Inversely proportional score"""
-
-    def evaluate(self, values: pd.Series) -> pd.Series:
-        self._statistics = self.calculate_statistics(values)
-
-        inverses = 1 / values
-        scores = (inverses / inverses.sum()) * 100
 
         return scores * self.weight
 

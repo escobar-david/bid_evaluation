@@ -76,13 +76,11 @@ FILTER_OPTIONS = ["None", "Score Threshold", "Top N"]
 FILTER_TO_INTERNAL = {"None": None, "Score Threshold": "score_threshold", "Top N": "top_n"}
 FILTER_TO_DISPLAY = {v: k for k, v in FILTER_TO_INTERNAL.items()}
 
-CRITERION_OPTIONS = ["Linear", "Direct Score", "Min Ratio", "Geometric Mean", "Inverse", "Threshold", "Formula"]
+CRITERION_OPTIONS = ["Linear", "Direct Score", "Min Ratio", "Threshold", "Formula"]
 CTYPE_TO_INTERNAL = {
     "Linear": "linear",
     "Direct Score": "direct",
     "Min Ratio": "min_ratio",
-    "Geometric Mean": "geometric_mean",
-    "Inverse": "inverse",
     "Threshold": "threshold",
     "Formula": "formula",
 }
@@ -92,8 +90,6 @@ CRITERION_DESCRIPTIONS = {
     "Linear": "Normalizes values linearly to 0\u2013100. Best for quantities like years of experience.",
     "Direct Score": "Uses values as-is (already scored). For committee/expert ratings.",
     "Min Ratio": "Score = (min value / value) \u00d7 100. Lowest value gets 100. Ideal for price.",
-    "Geometric Mean": "Scores relative to the geometric mean. Values at or below the mean get 100.",
-    "Inverse": "Inversely proportional: lower values get higher scores. For costs, durations.",
     "Threshold": "Maps value ranges to fixed scores. For categorical/tiered evaluation.",
     "Formula": "Write a math expression. Available: value, min, max, mean, median, std, plus custom variables. Functions: abs, sqrt, log, exp, clip.",
 }
@@ -788,10 +784,6 @@ def build_staged_evaluator():
                               input_scale=crit.get("input_scale", 100.0))
             elif ct == "min_ratio":
                 staged.min_ratio(col, w, name=name)
-            elif ct == "geometric_mean":
-                staged.geometric_mean(col, w, name=name)
-            elif ct == "inverse":
-                staged.inverse(col, w, name=name)
             elif ct == "threshold":
                 staged.threshold(col, w, thresholds=crit.get("thresholds", []), name=name)
             elif ct == "formula":
