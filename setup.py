@@ -30,6 +30,7 @@ setup(
         "numpy>=1.20.0",
         "pyyaml>=5.4.0",
         "openpyxl>=3.0.0",
+        "simpleeval>=0.9.13",
     ],
     extras_require={
         "dev": [
