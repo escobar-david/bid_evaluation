@@ -3,7 +3,6 @@
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 ![Python](https://img.shields.io/badge/python-3.8+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://bidevaluation.streamlit.app)
 
 A flexible Python library for evaluating competitive bids using multiple weighted criteria. Designed to help procurement professionals, project managers, and organizations systematically score and rank vendor bids based on various evaluation factors.
 
@@ -22,8 +21,8 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 
 ## 🚀 Quick Start
 
-### Try Online (Fastest)
-**[Launch Demo →](https://bidevaluation.streamlit.app)** - Try it in your browser, no setup needed!
+### Try Online
+**Library Demo** (hosted) — built on this library. Details are shared separately.
 
 
 
@@ -98,14 +97,7 @@ Eliminated bids are marked in the `eliminated_at_stage` column and excluded from
 - **[Custom criteria](examples/example_custom.py)** - Write your own evaluation logic
 - **[Staged evaluation](examples/example_staged.py)** - Multi-stage evaluation with filtering
 
-## 🎨 Interactive Demo
-
-
-### Online Demo
-**🔗 [Live Demo](https://bidevaluation.streamlit.app)** - Use it right now in your browser!
-
-
-### Run Locally
+## 🎨 Streamlit Demos (Open Source)
 
 **Single-stage demo** (basic evaluation):
 ```bash
@@ -122,12 +114,7 @@ If you have more than 1 python version (streamlit could be associated with a dif
 python -m streamlit run demos/streamlit_demo.py
 ```
 
-**Demo features:**
-- 📤 Export/import evaluation configurations (local files)
-- 📊 Interactive criteria configuration with formula support
-- 📥 Download results as CSV or Excel
-- 📈 View detailed statistics
-- 🔄 Multi-stage pipeline with visual score breakdowns (staged demo)
+These demos are provided as open-source examples for library users.
 
 ## 📖 Documentation
 
