@@ -22,7 +22,7 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ## 🚀 Quick Start
 
 ### Try Online
-**Library Demo** (hosted) — built on this library. Details are shared separately.
+**Library Demo** (hosted): https://bidevaluation.streamlit.app/
 
 
 
