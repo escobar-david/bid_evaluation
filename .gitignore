@@ -49,7 +49,8 @@ Thumbs.db
 
 .claude/
 CLAUDE.md
-demos/streamlit_demo_v2.py
 demos/.streamlit/config.toml
-chart_comparison.html
-chart_test.html
+
+
+AGENTS.md
+apps/
