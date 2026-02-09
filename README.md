@@ -30,7 +30,12 @@ A flexible Python library for evaluating competitive bids using multiple weighte
 ```bash
 git clone https://github.com/escobar-david/bid_evaluation.git
 cd bid_evaluation
-pip install -r requirements.txt
+pip install .
+```
+
+Install with demo dependencies (Streamlit apps):
+```bash
+pip install ".[demos]"
 ```
 
 Or install directly from GitHub:
@@ -101,11 +106,13 @@ Eliminated bids are marked in the `eliminated_at_stage` column and excluded from
 
 **Single-stage demo** (basic evaluation):
 ```bash
+pip install ".[demos]"
 streamlit run demos/streamlit_demo.py
 ```
 
 **Staged evaluation demo** (multi-stage with filtering):
 ```bash
+pip install ".[demos]"
 streamlit run demos/streamlit_staged_demo.py
 ```
 

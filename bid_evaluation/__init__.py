@@ -4,7 +4,7 @@ Bid Evaluation Library
 Open-source toolkit for procurement bid evaluation
 """
 
-__version__ = "0.1.0-alpha"
+__version__ = "0.1.0"
 
 from .criteria import (
     # Base classes
