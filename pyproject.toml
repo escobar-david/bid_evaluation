@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE.txt" }
 authors = [
-  { name = "David" }
+  { name = "David Escobar" }
 ]
 keywords = ["procurement", "bid", "evaluation", "scoring", "ranking"]
 classifiers = [
