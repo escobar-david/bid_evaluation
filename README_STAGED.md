@@ -12,6 +12,20 @@ Many real-world procurement processes work in phases:
 
 `StagedEvaluator` models this directly. Each stage has its own criteria and scoring, and an optional filter controls which bids advance.
 
+## Installation
+
+Install from PyPI:
+
+```bash
+pip install bid-evaluation
+```
+
+If you want to run Streamlit demos from the repository:
+
+```bash
+pip install ".[demos]"
+```
+
 ## Quick Start
 
 ```python
